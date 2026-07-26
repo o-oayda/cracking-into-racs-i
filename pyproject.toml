@@ -1,0 +1,22 @@
+[project]
+name = "cracking-into-racs-i"
+version = "0.1.0"
+description = "Generate plots from Cracking Into Racs – I."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [
+    {name = "Oliver Oayda", email = "oaydaoliver@gmail.com"}
+]
+dependencies = [
+    "snakemake==9.23.1",
+    "dipole-utils",
+    "catsim",
+    "pandas"
+]
+
+[tool.uv.sources]
+dipole-utils = { git = "https://github.com/o-oayda/dipole-utils.git" }
+catsim = { git = "https://github.com/o-oayda/catsim.git" }
+
+[tool.uv]
+package = false
