@@ -1,0 +1,43 @@
+rule all:
+  input:
+    'output/figx-paf-temp.pdf',
+    'output/figx-racs-nvss-temp.pdf'
+
+rule paf_temp_plot:
+  input:
+    paf_dir_path='/home/oliver/Documents/dipole-utils/data/paf_temps'
+  output:
+    plot='output/figx-paf-temp.pdf'
+  params:
+    observation_day='2023-12-21'
+  log:
+    'log/plot1.log'
+  shell:
+    """
+    python scripts/figx-paf-temp.py \
+      --paf-dir-path {input.paf_dir_path:q} \
+      --observation-day {params.observation_day} \
+      > {log:q} 2>&1
+    """
+
+rule racs_nvss_ratio_plot:
+  input:
+    paf_dir_path='/home/oliver/Documents/dipole-utils/data/paf_temps',
+    low3_path='/home/oliver/catalogue_data/racs/low3/RACS-low3_sources.fits',
+    mid1_path='/home/oliver/catalogue_data/racs/mid1/RACS-mid1_noscale_srl.fits',
+    nvss_path='/home/oliver/catalogue_data/nvss/Full_NVSS_combined_named.dat'
+  output:
+    plot='output/figx-racs-nvss-temp.pdf'
+  params:
+    observation_day='2023-12-21'
+  log:
+    'log/plot2.log'
+  shell:
+    """
+    python scripts/figx-racs-nvss-temp.py \
+      --low3-path {input.low3_path:q} \
+      --mid1-path {input.mid1_path:q} \
+      --nvss-path {input.nvss_path:q} \
+      --paf-dir-path {input.paf_dir_path} \
+      > {log:q} 2>&1
+    """
