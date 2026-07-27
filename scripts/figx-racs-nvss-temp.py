@@ -9,6 +9,8 @@ from dipoleutils.utils.plotting import plot_binned_mean, plot_binned_quantile
 import numpy as np
 from catsim.racs import Racs, RacsConfig
 import matplotlib.pyplot as plt
+
+from palette import CELADON, MUTED_TEAL, ROSEWOOD
 plt.rcParams.update(
     {
         "text.usetex": True,
@@ -130,7 +132,7 @@ def idx_to_temp(temp_by_idx, idxs):
 
 def draw_ratio_plot(x, y, y_err, **kwargs):
     print(x)
-    plt.errorbar(x, y, yerr=y_err, marker='o', **kwargs)
+    plt.errorbar(x, y, yerr=y_err, **kwargs)
 
 
 def get_ratio_per_temp_bin(
@@ -140,6 +142,13 @@ def get_ratio_per_temp_bin(
     nvss = CatalogueToMap(load_catalogue(nvss_path))
     racs.make_cut('Total_flux', minimum=FLUX_MIN, maximum=FLUX_MAX)
     nvss.make_cut('integrated_flux', minimum=FLUX_MIN, maximum=FLUX_MAX)
+
+    if racs_sample == 'mid1':
+        racs.make_cut('Tile_centre_sep', minimum=None, maximum=2)
+        print(np.max(racs.catalogue['Tile_centre_sep']))
+    elif racs_sample == 'low3':
+        racs.make_cut('Tile_sep', minimum=None, maximum=2)
+        print(np.max(racs.catalogue['Tile_sep']))
 
     temp_by_idx, idx_by_sbid = get_lookups_from_model(racs_sample, paf_dir_path)
     tile_indices = sbid_to_tile_idx(racs.get_catalogue()['SBID'], idx_by_sbid)
@@ -178,10 +187,12 @@ def main():
 
     plt.figure(figsize=(4,3))
     draw_ratio_plot(
-        low3_bins, low3_ratios, low3_errs, label='RACS-low3', color='cornflowerblue'
+        low3_bins, low3_ratios, low3_errs, label='RACS-low3', color=MUTED_TEAL,
+        marker='o'
     )
     draw_ratio_plot(
-        mid1_bins, mid1_ratios, mid1_errs, label='RACS-mid1', color='tomato'
+        mid1_bins, mid1_ratios, mid1_errs, label='RACS-mid1', color=ROSEWOOD,
+        marker='s'
     )
     ax = plt.gca()
     ax.axvspan(22, 25, color='saddlebrown', alpha=0.2)

@@ -3,6 +3,7 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from astropy.io import fits
 from astropy.time import Time
 from catsim.utils.weather import (
     DEFAULT_MAX_INTERPOLATION_GAP_MINUTES,
@@ -10,7 +11,10 @@ from catsim.utils.weather import (
 )
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+
+from palette import DARK_AMETHYST, DRY_SAGE, HOT_FUCHSIA, ROSY_TAUPE, ROYAL_PLUM, STEEL_BLUE, TANGERINE_DREAM
 plt.rcParams.update(
     {
         "text.usetex": True,
@@ -53,6 +57,12 @@ def parse_args():
         required=True,
         metavar='YYYY-MM-DD',
         help='Only plot temperature reports from this day.'
+    )
+    argparser.add_argument(
+        '--catalogue-path',
+        type=str,
+        required=True,
+        help='Path to a catalogue containing the Scan_start_MJD column.'
     )
     args = argparser.parse_args()
     return args
@@ -164,8 +174,49 @@ def select_observation_day(temps: pd.DataFrame, observation_day: date):
     ]
 
 
+def load_scan_start_times(
+    catalogue_path: str, observation_day: date
+) -> list[datetime]:
+    path = Path(catalogue_path).expanduser()
+    if not path.is_file():
+        raise FileNotFoundError(f'Catalogue does not exist: {path}')
+
+    with fits.open(path, memmap=True) as hdus:
+        catalogue_hdu = next(
+            (
+                hdu for hdu in hdus
+                if getattr(hdu, 'columns', None) is not None
+                and 'Scan_start_MJD' in hdu.columns.names
+            ),
+            None,
+        )
+        if catalogue_hdu is None:
+            raise ValueError(
+                f'Catalogue does not contain Scan_start_MJD: {path}'
+            )
+        scan_start_mjd = np.asarray(
+            catalogue_hdu.data['Scan_start_MJD'], dtype=float
+        )
+        scan_start_mjd = np.unique(scan_start_mjd[np.isfinite(scan_start_mjd)])
+
+    scan_starts_utc = pd.to_datetime(
+        Time(scan_start_mjd, format='mjd', scale='utc').to_datetime(), utc=True
+    )
+    scan_starts_awst = scan_starts_utc.tz_convert(AWST_TIMEZONE)
+    on_observation_day = scan_starts_awst.date == observation_day
+    return list(
+        scan_starts_awst[on_observation_day]
+        .tz_localize(None)
+        .to_pydatetime()
+    )
+
+
 def plot_paf_temperature(
-    temps_by_antenna, ambient_temps, mean_paf_temps, observation_day: date
+    temps_by_antenna,
+    ambient_temps,
+    mean_paf_temps,
+    scan_start_times,
+    observation_day: date,
 ):
     reported_temps = {
         antenna: temps.dropna(subset=[TEMPERATURE_COLUMN])
@@ -188,32 +239,43 @@ def plot_paf_temperature(
     day_end = day_start + timedelta(days=1)
 
     fig, ax = plt.subplots(figsize=(7, 3))
-    for temps in reported_temps.values():
+    for index, temps in enumerate(reported_temps.values()):
         ax.plot(
             temps['Time'],
             temps[TEMPERATURE_COLUMN],
             linewidth=0.8,
-            color='grey',
-            alpha=0.7,
+            color=DRY_SAGE,
+            alpha=0.5,
+            label='PAF temperatures' if index == 0 else None,
         )
-    ax.plot(
-        ambient_temps['Time'],
-        ambient_temps[TEMPERATURE_COLUMN],
-        color='chocolate',
-        linewidth=1.5,
-        label='Ambient temperature',
-    )
     ax.plot(
         mean_paf_temps['Time'],
         mean_paf_temps[TEMPERATURE_COLUMN],
-        color='tab:red',
+        color=ROYAL_PLUM,
         linewidth=1.8,
         label='Mean PAF temperature',
         zorder=3,
     )
+    ax.plot(
+        ambient_temps['Time'],
+        ambient_temps[TEMPERATURE_COLUMN],
+        color=TANGERINE_DREAM,
+        linewidth=1.5,
+        label='Ambient temperature',
+    )
+    for index, scan_start in enumerate(scan_start_times):
+        ax.axvline(
+            scan_start,
+            color=STEEL_BLUE,
+            linestyle='dotted',
+            linewidth=1,
+            zorder=-2,
+            alpha=0.8,
+            label='Scan start' if index == 0 else None,
+        )
     ax.set_xlim(day_start, day_end)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-    ax.set_xlabel(f'Time (AWST) on {observation_day.isoformat()}')
+    ax.set_xlabel(f'Time on {observation_day.isoformat()}')
     ax.set_ylabel(r'Temperature ($^\circ$C)')
     ax.legend()
     fig.tight_layout()
@@ -234,12 +296,16 @@ def main():
     mean_paf_temps = compute_catsim_mean_paf_temperature(
         args.paf_dir_path, args.observation_day
     )
+    scan_start_times = load_scan_start_times(
+        args.catalogue_path, args.observation_day
+    )
     for ambient_path in ambient_paths:
         print(f'Using ambient temperature file: {ambient_path}')
     plot_paf_temperature(
         temps_by_antenna,
         ambient_temps,
         mean_paf_temps,
+        scan_start_times,
         args.observation_day,
     )
 
