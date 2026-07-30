@@ -8,6 +8,21 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "anesthetic"
+version = "2.14.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/af/f4/92260f66ac768942d46f4acf64ba9d0305e77b1f8881869ca6f9cc917dc0/anesthetic-2.14.9.tar.gz", hash = "sha256:5e27d15c77db966efd6e4076470951b027805ea1e1fc9a5b557bc758fc3b3f31", size = 123218, upload-time = "2026-06-12T18:58:53.286Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5d/57/3ebd5f29a7860926f1b99eeadb9abba8dbecc10a49910efabaacab85ba2c/anesthetic-2.14.9-py3-none-any.whl", hash = "sha256:b3102714b0373d0251cdadaee24df453a21216ff5af90cc65a03d97c7ee4da05", size = 89153, upload-time = "2026-06-12T18:58:51.894Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -125,6 +140,29 @@ wheels = [
 ]
 
 [[package]]
+name = "ciri"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "anesthetic" },
+    { name = "catsim" },
+    { name = "dipole-utils" },
+    { name = "getdist" },
+    { name = "pandas" },
+    { name = "snakemake" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anesthetic", specifier = ">=2.14.9" },
+    { name = "catsim", git = "https://github.com/o-oayda/catsim.git" },
+    { name = "dipole-utils", git = "https://github.com/o-oayda/dipole-utils.git" },
+    { name = "getdist", specifier = ">=1.7.7" },
+    { name = "pandas" },
+    { name = "snakemake", specifier = "==9.23.1" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -201,25 +239,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/4f/06/0d045530fa994ab450f6a98b7ad9f74c90a8abf5271d3690f60d1aa933d8/corner-2.3.0.tar.gz", hash = "sha256:685ecb1e778809b78c6783f4a4691d023bbd9f781c9efda683c2b793878b561c", size = 6089474, upload-time = "2026-07-05T17:56:05.355Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d6/cb/17a130e548ee1777f2a66e09240c531a9bf79454add7ef1198fe1e41c412/corner-2.3.0-py3-none-any.whl", hash = "sha256:f93f0a4d77ff6852d6ddc80a6a99038117be64e3b5b49d96a82c9f5974cce126", size = 16954, upload-time = "2026-07-05T17:56:03.827Z" },
-]
-
-[[package]]
-name = "cracking-into-racs-i"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "catsim" },
-    { name = "dipole-utils" },
-    { name = "pandas" },
-    { name = "snakemake" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "catsim", git = "https://github.com/o-oayda/catsim.git" },
-    { name = "dipole-utils", git = "https://github.com/o-oayda/dipole-utils.git" },
-    { name = "pandas" },
-    { name = "snakemake", specifier = "==9.23.1" },
 ]
 
 [[package]]

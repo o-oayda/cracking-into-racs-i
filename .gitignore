@@ -1,4 +1,6 @@
 output/
+artifacts/cache/
+derived/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
