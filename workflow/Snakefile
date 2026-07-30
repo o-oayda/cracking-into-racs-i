@@ -1,7 +1,72 @@
+configfile: "workflow/config/artifacts.yaml"
+
+
+ANALYSIS_ARTIFACTS = config["artifacts"]
+ANALYSIS_VERIFICATION_REPORTS = {
+  name: (
+    "derived/artifacts/"
+    f"{artifact['experiment_id']}.{artifact['sha256']}.verified.json"
+  )
+  for name, artifact in ANALYSIS_ARTIFACTS.items()
+}
+
+
+def analysis_artifact_path(wildcards):
+  artifact = ANALYSIS_ARTIFACTS[wildcards.artifact_name]
+  if wildcards.sha256 != artifact["sha256"]:
+    raise ValueError(
+      f"Checksum wildcard for {wildcards.artifact_name} does not match its config"
+    )
+  return artifact["path"]
+
+
 rule all:
   input:
     'output/figx-paf-temp.pdf',
-    'output/figx-racs-nvss-temp.pdf'
+    'output/figx-racs-nvss-temp.pdf',
+    'output/figx-corner.pdf'
+
+
+rule verify_racs_analysis_artifact:
+  input:
+    ANALYSIS_VERIFICATION_REPORTS.values()
+
+
+rule verify_analysis_artifact:
+  input:
+    artifact=analysis_artifact_path
+  output:
+    report="derived/artifacts/{artifact_name}.{sha256}.verified.json"
+  params:
+    sha256=lambda wildcards: ANALYSIS_ARTIFACTS[wildcards.artifact_name]["sha256"],
+    experiment_id=lambda wildcards: ANALYSIS_ARTIFACTS[wildcards.artifact_name]["experiment_id"],
+    format_version=lambda wildcards: ANALYSIS_ARTIFACTS[wildcards.artifact_name]["format_version"],
+    source_repository=lambda wildcards: ANALYSIS_ARTIFACTS[wildcards.artifact_name]["source_repository"],
+    source_commit=lambda wildcards: ANALYSIS_ARTIFACTS[wildcards.artifact_name]["source_commit"],
+    require_clean=lambda wildcards: (
+      "--require-clean"
+      if ANALYSIS_ARTIFACTS[wildcards.artifact_name]["require_clean"]
+      else ""
+    )
+  log:
+    'log/verify-{artifact_name}.{sha256}-analysis-artifact.log'
+  wildcard_constraints:
+    artifact_name="|".join(ANALYSIS_ARTIFACTS),
+    sha256="[0-9a-f]{64}"
+  shell:
+    """
+    mkdir -p log
+    python scripts/verify-analysis-artifact.py \
+      --artifact {input.artifact:q} \
+      --expected-sha256 {params.sha256:q} \
+      --expected-experiment-id {params.experiment_id:q} \
+      --expected-format-version {params.format_version:q} \
+      --expected-source-repository {params.source_repository:q} \
+      --expected-source-commit {params.source_commit:q} \
+      {params.require_clean} \
+      --report {output.report:q} \
+      > {log:q} 2>&1
+    """
 
 rule paf_temp_plot:
   input:
@@ -41,5 +106,44 @@ rule racs_nvss_ratio_plot:
       --mid1-path {input.mid1_path:q} \
       --nvss-path {input.nvss_path:q} \
       --paf-dir-path {input.paf_dir_path} \
+      > {log:q} 2>&1
+    """
+
+rule samples:
+  input:
+    mid1_artifact=ANALYSIS_ARTIFACTS["racs_mid1_example"]["path"],
+    mid1_report=ANALYSIS_VERIFICATION_REPORTS["racs_mid1_example"],
+    low3_artifact=ANALYSIS_ARTIFACTS["racs_low3_fiducial"]["path"],
+    low3_report=ANALYSIS_VERIFICATION_REPORTS["racs_low3_fiducial"]
+  output:
+    racs='output/fix-racs.pdf',
+    nvss='output/fix-nvss.pdf'
+  log:
+    'log/sample_plot.log'
+  shell:
+    """
+    python scripts/figx-samples.py \
+      --mid1-artifact {input.mid1_artifact:q} \
+      --low3-artifact {input.low3_artifact:q} \
+      > {log:q} 2>&1
+    """
+    
+rule corner:
+  input:
+    mid1_artifact=ANALYSIS_ARTIFACTS["racs_mid1_example"]["path"],
+    mid1_report=ANALYSIS_VERIFICATION_REPORTS["racs_mid1_example"],
+    low3_artifact=ANALYSIS_ARTIFACTS["racs_low3_fiducial"]["path"],
+    low3_report=ANALYSIS_VERIFICATION_REPORTS["racs_low3_fiducial"]
+  output:
+    'output/figx-corner.pdf'
+  log:
+    'log/corner.log'
+  shell:
+    """
+    python scripts/figx-corner.py \
+      --mid1-artifact {input.mid1_artifact:q} \
+      --low3-artifact {input.low3_artifact:q} \
+      --exclude-log10-n-initial-samples \
+      --output {output:q} \
       > {log:q} 2>&1
     """

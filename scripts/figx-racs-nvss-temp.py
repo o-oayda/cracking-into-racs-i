@@ -9,8 +9,7 @@ from dipoleutils.utils.plotting import plot_binned_mean, plot_binned_quantile
 import numpy as np
 from catsim.racs import Racs, RacsConfig
 import matplotlib.pyplot as plt
-
-from palette import CELADON, MUTED_TEAL, ROSEWOOD
+from palette import CELADON, MUTED_TEAL, MUTED_TEAL_DARK, ROSEWOOD
 plt.rcParams.update(
     {
         "text.usetex": True,
@@ -187,7 +186,7 @@ def main():
 
     plt.figure(figsize=(4,3))
     draw_ratio_plot(
-        low3_bins, low3_ratios, low3_errs, label='RACS-low3', color=MUTED_TEAL,
+        low3_bins, low3_ratios, low3_errs, label='RACS-low3', color=MUTED_TEAL_DARK,
         marker='o'
     )
     draw_ratio_plot(

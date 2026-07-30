@@ -1,0 +1,17 @@
+artifacts:
+  racs_mid1_example:
+    path: artifacts/cache/racs_mid1_example.d2229a3dc7c0a75a23ed5c9cf2f9fbb1e590f7812263d69bc77ccd7c74df5c91.analysis.zip
+    sha256: d2229a3dc7c0a75a23ed5c9cf2f9fbb1e590f7812263d69bc77ccd7c74df5c91
+    experiment_id: racs_mid1_example
+    format_version: 1
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: d0e30c438eee92defd293d4846c144e064da83ec
+    require_clean: true
+  racs_low3_fiducial:
+    path: artifacts/cache/racs_low3_fiducial.3e6f5cdd1eb75589da153eeba9b0dde6543419b5e5951d2aa1c2a3983e6f1149.analysis.zip
+    sha256: 3e6f5cdd1eb75589da153eeba9b0dde6543419b5e5951d2aa1c2a3983e6f1149
+    experiment_id: racs_low3_fiducial
+    format_version: 2
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: a6b1252d476ddc73b841497454f3830c8b6efdc5
+    require_clean: true
