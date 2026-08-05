@@ -4,9 +4,9 @@ import io
 from pathlib import Path
 from getdist import MCSamples, plots
 import numpy as np
-from artifact_io import load_final_posterior
+from ciri.artifact_io import load_final_posterior
 from paperplot import style_name
-from palette import MUTED_TEAL, ROSEWOOD, MUTED_TEAL_DARK
+from ciri.palette import MUTED_TEAL, ROSEWOOD, MUTED_TEAL_DARK, TANGERINE_DREAM_DARK
 
 
 plots.set_active_style(style_name)
@@ -27,13 +27,14 @@ PARAMETERS = (
     ("temp_beta", r"\beta_{t}"),
     ("lambda_clus", r"\lambda_{c}"),
 )
-SAMPLE_COLORS = (ROSEWOOD, MUTED_TEAL_DARK)
+SAMPLE_COLORS = (ROSEWOOD, MUTED_TEAL_DARK, TANGERINE_DREAM_DARK)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mid1-artifact", type=Path, required=True)
     parser.add_argument("--low3-artifact", type=Path, required=True)
+    parser.add_argument("--low2-artifact", type=Path, required=True)
     parser.add_argument(
         "--exclude-log10-n-initial-samples",
         action=argparse.BooleanOptionalAction,
@@ -122,6 +123,7 @@ def main() -> None:
     samples = [
         getdist_samples(args.mid1_artifact, "RACS-mid1"),
         getdist_samples(args.low3_artifact, "RACS-low3"),
+        getdist_samples(args.low2_artifact, "RACS-low2")
     ]
     parameters = PARAMETERS[1:] if args.exclude_log10_n_initial_samples else PARAMETERS
     names = [name for name, _ in parameters]

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from palette import DARK_AMETHYST, DRY_SAGE, HOT_FUCHSIA, ROSY_TAUPE, ROYAL_PLUM, STEEL_BLUE, TANGERINE_DREAM
+from ciri.palette import DARK_AMETHYST, DRY_SAGE, HOT_FUCHSIA, ROSY_TAUPE, ROYAL_PLUM, STEEL_BLUE, TANGERINE_DREAM
 plt.rcParams.update(
     {
         "text.usetex": True,

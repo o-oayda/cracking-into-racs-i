@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import json
 from io import BytesIO
 from pathlib import Path
 from zipfile import ZipFile
 
 from anesthetic import Samples, read_csv
+from catsim import RacsConfig
 import numpy as np
 from numpy.typing import NDArray
 
 
 FINAL_POSTERIOR_PATH = "posterior/final-posterior.csv"
+MODEL_CONFIG_PATH = "provenance/model_config.json"
 REFERENCE_OBSERVATION_PATH = "observation/reference-observation.npz"
 NATIVE_OBSERVATION_PATH = "observation/reference-observation-native.npz"
 
@@ -46,7 +49,7 @@ def load_reference_observation(
         ref_path = REFERENCE_OBSERVATION_PATH
 
     with ZipFile(Path(artifact_path).expanduser()) as archive:
-        payload = archive.read(NATIVE_OBSERVATION_PATH)
+        payload = archive.read(ref_path)
 
     with np.load(BytesIO(payload), allow_pickle=False) as observation:
         missing = {"x0", "mask"} - set(observation.files)
@@ -62,3 +65,15 @@ def load_reference_observation(
             f"got {x0.shape} and {mask.shape}"
         )
     return x0, mask
+
+
+def load_model_config(
+    artifact_path: str | Path
+) -> RacsConfig:
+    """Load the serialized simulator configuration from an artifact."""
+    path = Path(artifact_path).expanduser()
+    with ZipFile(path) as archive:
+        with archive.open(MODEL_CONFIG_PATH) as stream:
+            serialized_config = json.load(stream)
+
+    return RacsConfig(**serialized_config["fields"])

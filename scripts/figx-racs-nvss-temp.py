@@ -1,5 +1,6 @@
 from astropy.io.registry import IORegistryError
 from catsim.racs_products import RACS_LOW3, RACS_MID1
+from catsim.racs_temperature import evaluate_temperature_response
 from dipoleutils import DataLoader, CatalogueToMap
 import argparse
 from pathlib import Path
@@ -9,7 +10,8 @@ from dipoleutils.utils.plotting import plot_binned_mean, plot_binned_quantile
 import numpy as np
 from catsim.racs import Racs, RacsConfig
 import matplotlib.pyplot as plt
-from palette import CELADON, MUTED_TEAL, MUTED_TEAL_DARK, ROSEWOOD
+from ciri.palette import CELADON, DRY_SAGE, MUTED_TEAL, MUTED_TEAL_DARK, ROSEWOOD
+from ciri.artifact_io import load_final_posterior
 plt.rcParams.update(
     {
         "text.usetex": True,
@@ -24,7 +26,15 @@ plt.rcParams.update(
 FLUX_MIN = 15
 FLUX_MAX = None
 CROSSMATCH_RADIUS = 5
-SPECTRAL_INDEX = 0.8 # S ~ \nu ^{-\alpha}
+SPECTRAL_INDEX = {  # S ~ \nu ^{-\alpha}
+    'low3': 1.0,
+    'mid1': 0.8,
+}
+ONE_SIGMA_QUANTILES = (0.158655254, 0.5, 0.841344746)
+MODEL_MEDIAN_LINE_WIDTH = 1.2
+MODEL_INTERVAL_LINE_WIDTH = 0.
+MODEL_INTERVAL_LINE_ALPHA = 0.6
+MODEL_INTERVAL_FILL_ALPHA = 0.2
 SURVEY_FREQUENCY_MHZ = {
     'low3': 943.5,
     'mid1': 1367.5,
@@ -64,6 +74,18 @@ def parse_args():
         type=str,
         help='Path to dir containing PAF temps.'
     )
+    argparser.add_argument(
+        '--low3-artifact',
+        type=Path,
+        required=True,
+        help='LOW3 analysis artifact containing posterior samples.'
+    )
+    argparser.add_argument(
+        '--mid1-artifact',
+        type=Path,
+        required=True,
+        help='MID1 analysis artifact containing posterior samples.'
+    )
     args = argparser.parse_args()
     return args
 
@@ -96,7 +118,7 @@ def get_common_sources(racs: CatalogueToMap, nvss: CatalogueToMap) -> Table:
 def compute_flux_ratio(common_sources: Table, survey: str):
     scaled_nvss_flux = np.asarray(common_sources['B_integrated_flux'], dtype=float) * (
         SURVEY_FREQUENCY_MHZ[survey] / SURVEY_FREQUENCY_MHZ['nvss']
-    ) ** -SPECTRAL_INDEX
+    ) ** -SPECTRAL_INDEX[survey]
     racs_flux = np.asarray(common_sources['A_Total_flux'], dtype=float)
     flux_ratio = racs_flux / scaled_nvss_flux
     return flux_ratio
@@ -173,6 +195,84 @@ def get_ratio_per_temp_bin(
     return ratio_bin_temperatures, flux_ratio, ratio_errs
 
 
+def flux_ratio_at_temperature(
+    bin_temperatures,
+    flux_ratios,
+    temperature: float = 25.0,
+) -> float:
+    bin_temperatures = np.asarray(bin_temperatures, dtype=float)
+    flux_ratios = np.asarray(flux_ratios, dtype=float)
+    matches = np.flatnonzero(np.isclose(bin_temperatures, temperature))
+    if matches.size != 1:
+        raise ValueError(
+            f'Expected exactly one empirical flux-ratio bin at {temperature:g} C; '
+            f'found {matches.size}'
+        )
+    reference_ratio = float(flux_ratios[matches[0]])
+    if not np.isfinite(reference_ratio):
+        raise ValueError(
+            f'Empirical flux ratio at {temperature:g} C is not finite'
+        )
+    return reference_ratio
+
+
+def plot_model_fit(
+    path: str | Path,
+    color: str,
+    reference_flux_ratio: float,
+) -> None:
+    samples = load_final_posterior(path)
+    beta_quantiles = np.asarray(
+        samples['temp_beta'].quantile(ONE_SIGMA_QUANTILES),
+        dtype=float,
+    )
+    temps = np.linspace(23, 35, 1000)
+    temperature_response = evaluate_temperature_response(
+        temps[None, :],
+        beta_quantiles[:, None],
+        25,
+        model="hot_linear",
+        xp=np,
+    )
+    model_curves = reference_flux_ratio * temperature_response
+    lower_curve = np.minimum(model_curves[0], model_curves[2])
+    upper_curve = np.maximum(model_curves[0], model_curves[2])
+    axis = plt.gca()
+    axis.plot(
+        temps,
+        model_curves[1],
+        color=color,
+        linestyle='dotted',
+        linewidth=MODEL_MEDIAN_LINE_WIDTH,
+        zorder=0,
+    )
+    axis.plot(
+        temps,
+        lower_curve,
+        color=color,
+        alpha=MODEL_INTERVAL_LINE_ALPHA,
+        linewidth=MODEL_INTERVAL_LINE_WIDTH,
+        zorder=0,
+    )
+    axis.plot(
+        temps,
+        upper_curve,
+        color=color,
+        alpha=MODEL_INTERVAL_LINE_ALPHA,
+        linewidth=MODEL_INTERVAL_LINE_WIDTH,
+        zorder=0,
+    )
+    axis.fill_between(
+        temps,
+        lower_curve,
+        upper_curve,
+        color=color,
+        alpha=MODEL_INTERVAL_FILL_ALPHA,
+        linewidth=0,
+        zorder=-1,
+    )
+
+
 def main():
     args = parse_args()
     low3_bins, low3_ratios, low3_errs = get_ratio_per_temp_bin(
@@ -189,12 +289,22 @@ def main():
         low3_bins, low3_ratios, low3_errs, label='RACS-low3', color=MUTED_TEAL_DARK,
         marker='o'
     )
+    plot_model_fit(
+        args.low3_artifact,
+        MUTED_TEAL_DARK,
+        flux_ratio_at_temperature(low3_bins, low3_ratios),
+    )
     draw_ratio_plot(
         mid1_bins, mid1_ratios, mid1_errs, label='RACS-mid1', color=ROSEWOOD,
         marker='s'
     )
+    plot_model_fit(
+        args.mid1_artifact,
+        ROSEWOOD,
+        flux_ratio_at_temperature(mid1_bins, mid1_ratios),
+    )
     ax = plt.gca()
-    ax.axvspan(22, 25, color='saddlebrown', alpha=0.2)
+    ax.axvspan(22, 25, color=DRY_SAGE, alpha=0.3)
     plt.xlabel(r'PAF temperature ($^\circ$C)')
     plt.ylabel(r'Mean flux ratio (RACS / NVSS)')
     plt.xlim(22.5, None)
