@@ -15,3 +15,19 @@ artifacts:
     source_repository: https://github.com/o-oayda/sbi.git
     source_commit: a6b1252d476ddc73b841497454f3830c8b6efdc5
     require_clean: true
+  racs_low3_surj:
+    path: artifacts/cache/racs_low3_surj.f8f20b87e114652210411e65fb00f3a68b72f38e9899bccb2f13c3174c3a347d.analysis.zip
+    sha256: f8f20b87e114652210411e65fb00f3a68b72f38e9899bccb2f13c3174c3a347d
+    experiment_id: racs_low3_surj
+    format_version: 2
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 486eebdc5dd498525dea3e4993671d37f0de4792
+    require_clean: false
+  racs_mid1_surj:
+    path: artifacts/cache/racs_mid1_surj.d27f31d1960994f209cd48f0d31213dd37d18ae78db2614840162f7132d982cc.analysis.zip
+    sha256: d27f31d1960994f209cd48f0d31213dd37d18ae78db2614840162f7132d982cc
+    experiment_id: racs_mid1_surj
+    format_version: 2
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 3e13dba0c38e6539ebb8d1d2287aef6c399dd588
+    require_clean: false

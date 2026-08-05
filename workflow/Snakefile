@@ -1,5 +1,14 @@
 configfile: "workflow/config/artifacts.yaml"
 
+# temp paths
+PAF_DIR_PATH = '../dipole-utils/data/paf_temps'
+LOW3_PATH = '../../catalogue_data/racs/low3/RACS-low3_sources.fits',
+MID1_PATH = '../../catalogue_data/racs/mid1/RACS-mid1_noscale_srl.fits',
+NVSS_PATH = '../../catalogue_data/nvss/Full_NVSS_combined_named.dat',
+
+LOW3_ID = 'racs_low3_surj'
+MID1_ID = 'racs_mid1_surj'
+
 
 ANALYSIS_ARTIFACTS = config["artifacts"]
 ANALYSIS_VERIFICATION_REPORTS = {
@@ -22,9 +31,13 @@ def analysis_artifact_path(wildcards):
 
 rule all:
   input:
-    'output/figx-paf-temp.pdf',
-    'output/figx-racs-nvss-temp.pdf',
-    'output/figx-corner.pdf'
+    verification_reports=list(ANALYSIS_VERIFICATION_REPORTS.values()),
+    plots = [
+      'output/figx-paf-temp.pdf',
+      'output/figx-racs-nvss-temp.pdf',
+      'output/figx-corner.pdf',
+      'output/figx-samples.pdf'
+    ]
 
 
 rule verify_racs_analysis_artifact:
@@ -70,8 +83,8 @@ rule verify_analysis_artifact:
 
 rule paf_temp_plot:
   input:
-    paf_dir_path='../dipole-utils/data/paf_temps',
-    catalogue_path='../../catalogue_data/racs/low3/RACS-low3_sources.fits'
+    paf_dir_path=PAF_DIR_PATH,
+    catalogue_path=LOW3_PATH
   output:
     plot='output/figx-paf-temp.pdf'
   params:
@@ -89,10 +102,14 @@ rule paf_temp_plot:
 
 rule racs_nvss_ratio_plot:
   input:
-    paf_dir_path='../dipole-utils/data/paf_temps',
-    low3_path='../../catalogue_data/racs/low3/RACS-low3_sources.fits',
-    mid1_path='../../catalogue_data/racs/mid1/RACS-mid1_noscale_srl.fits',
-    nvss_path='../../catalogue_data/nvss/Full_NVSS_combined_named.dat'
+    paf_dir_path=PAF_DIR_PATH,
+    low3_path=LOW3_PATH,
+    mid1_path=MID1_PATH,
+    nvss_path=NVSS_PATH,
+    low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    low3_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID],
+    mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    mid1_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID]
   output:
     plot='output/figx-racs-nvss-temp.pdf'
   params:
@@ -106,18 +123,19 @@ rule racs_nvss_ratio_plot:
       --mid1-path {input.mid1_path:q} \
       --nvss-path {input.nvss_path:q} \
       --paf-dir-path {input.paf_dir_path} \
+      --low3-artifact {input.low3_artifact:q} \
+      --mid1-artifact {input.mid1_artifact:q} \
       > {log:q} 2>&1
     """
 
 rule samples:
   input:
-    mid1_artifact=ANALYSIS_ARTIFACTS["racs_mid1_example"]["path"],
-    mid1_report=ANALYSIS_VERIFICATION_REPORTS["racs_mid1_example"],
-    low3_artifact=ANALYSIS_ARTIFACTS["racs_low3_fiducial"]["path"],
-    low3_report=ANALYSIS_VERIFICATION_REPORTS["racs_low3_fiducial"]
+    mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    mid1_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID],
+    low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    low3_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID]
   output:
-    racs='output/fix-racs.pdf',
-    nvss='output/fix-nvss.pdf'
+    'output/figx-samples.pdf'
   log:
     'log/sample_plot.log'
   shell:
@@ -130,10 +148,10 @@ rule samples:
     
 rule corner:
   input:
-    mid1_artifact=ANALYSIS_ARTIFACTS["racs_mid1_example"]["path"],
-    mid1_report=ANALYSIS_VERIFICATION_REPORTS["racs_mid1_example"],
-    low3_artifact=ANALYSIS_ARTIFACTS["racs_low3_fiducial"]["path"],
-    low3_report=ANALYSIS_VERIFICATION_REPORTS["racs_low3_fiducial"]
+    mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    mid1_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID],
+    low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    low3_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID]
   output:
     'output/figx-corner.pdf'
   log:
