@@ -24,5 +24,11 @@ dependencies = [
 dipole-utils = { git = "https://github.com/o-oayda/dipole-utils.git" }
 catsim = { git = "https://github.com/o-oayda/catsim.git" }
 
+
+[project.optional-dependencies]
+cuda = [
+  "catsim[jax]",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/ciri"]
