@@ -18,6 +18,9 @@ dependencies = [
     "pandas",
     "anesthetic>=2.14.9",
     "getdist>=1.7.7",
+    "astropy",
+    "healpy",
+    "scipy",
 ]
 
 [tool.uv.sources]

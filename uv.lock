@@ -150,10 +150,13 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "anesthetic" },
+    { name = "astropy" },
     { name = "catsim" },
     { name = "dipole-utils" },
     { name = "getdist" },
+    { name = "healpy" },
     { name = "pandas" },
+    { name = "scipy" },
     { name = "snakemake" },
 ]
 
@@ -165,11 +168,14 @@ cuda = [
 [package.metadata]
 requires-dist = [
     { name = "anesthetic", specifier = ">=2.14.9" },
+    { name = "astropy" },
     { name = "catsim", git = "https://github.com/o-oayda/catsim.git?rev=racs-noise-lookup" },
     { name = "catsim", extras = ["jax"], marker = "extra == 'cuda'", git = "https://github.com/o-oayda/catsim.git?rev=racs-noise-lookup" },
     { name = "dipole-utils", git = "https://github.com/o-oayda/dipole-utils.git" },
     { name = "getdist", specifier = ">=1.7.7" },
+    { name = "healpy" },
     { name = "pandas" },
+    { name = "scipy" },
     { name = "snakemake", specifier = "==9.23.1" },
 ]
 provides-extras = ["cuda"]

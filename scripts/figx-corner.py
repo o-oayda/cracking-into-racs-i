@@ -5,6 +5,8 @@ from pathlib import Path
 from getdist import MCSamples, plots
 import numpy as np
 from ciri.artifact_io import load_final_posterior
+from ciri.corner import corner_parameters, prepare_corner_samples
+from ciri.skymap import SkyFrame
 from paperplot import style_name
 from ciri.palette import MUTED_TEAL, ROSEWOOD, MUTED_TEAL_DARK, TANGERINE_DREAM_DARK
 
@@ -19,14 +21,6 @@ plt.rcParams.update(
 )
 
 
-PARAMETERS = (
-    ("log10_n_initial_samples", r"\log_{10} N_{}"),
-    ("observer_speed", r"\hat{v}_{o}"),
-    ("dipole_longitude", r"\ell^\circ"),
-    ("dipole_latitude", r"b^\circ"),
-    ("temp_beta", r"\beta_{t}"),
-    ("lambda_clus", r"\lambda_{c}"),
-)
 SAMPLE_COLORS = (ROSEWOOD, MUTED_TEAL_DARK) #, TANGERINE_DREAM_DARK)
 
 
@@ -35,6 +29,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mid1-artifact", type=Path, required=True)
     parser.add_argument("--low3-artifact", type=Path, required=True)
     parser.add_argument("--low2-artifact", type=Path, required=False)
+    parser.add_argument(
+        "--coordinates",
+        choices=("galactic", "equatorial"),
+        default="galactic",
+        help="Coordinates shown on the output map (default: galactic).",
+    )
     parser.add_argument(
         "--exclude-log10-n-initial-samples",
         action=argparse.BooleanOptionalAction,
@@ -45,24 +45,16 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def getdist_samples(artifact: Path, label: str) -> MCSamples:
+def getdist_samples(
+    artifact: Path,
+    label: str,
+    output_frame: SkyFrame,
+) -> MCSamples:
     nested = load_final_posterior(artifact, label=label)
-    names = [name for name, _ in PARAMETERS]
-    labels = [label for _, label in PARAMETERS]
-    matrix = np.column_stack(
-        [np.asarray(nested[name], dtype=np.float64) for name in names]
-    )
-    weights = np.asarray(nested.get_weights(), dtype=np.float64)
-
-    valid = (
-        np.all(np.isfinite(matrix), axis=1)
-        & np.isfinite(weights)
-        & (weights >= 0.0)
-    )
-    matrix = matrix[valid]
-    weights = weights[valid]
-    if matrix.size == 0 or not np.any(weights > 0.0):
-        raise ValueError("Posterior contains no finite samples with positive weight")
+    parameters = corner_parameters(output_frame)
+    names = [name for name, _ in parameters]
+    labels = [parameter_label for _, parameter_label in parameters]
+    matrix, weights = prepare_corner_samples(nested, output_frame)
 
     # Match dipolesbi.tools.posterior_cli: preserve the nested-sampling weights
     # when converting the anesthetic samples into a GetDist MCSamples object.
@@ -120,14 +112,22 @@ def stack_marginal_titles(
 
 def main() -> None:
     args = parse_args()
+    output_frame: SkyFrame = args.coordinates
     samples = [
-        getdist_samples(args.mid1_artifact, "RACS-mid1"),
-        getdist_samples(args.low3_artifact, "RACS-low3")
+        getdist_samples(args.mid1_artifact, "RACS-mid1", output_frame),
+        getdist_samples(args.low3_artifact, "RACS-low3", output_frame),
     ]
     if args.low2_artifact is not None:
-        samples.append(getdist_samples(args.low2_artifact, "RACS-low2"))
+        samples.append(
+            getdist_samples(args.low2_artifact, "RACS-low2", output_frame)
+        )
 
-    parameters = PARAMETERS[1:] if args.exclude_log10_n_initial_samples else PARAMETERS
+    all_parameters = corner_parameters(output_frame)
+    parameters = (
+        all_parameters[1:]
+        if args.exclude_log10_n_initial_samples
+        else all_parameters
+    )
     names = [name for name, _ in parameters]
 
     plotter = plots.get_subplot_plotter(width_inch=8)

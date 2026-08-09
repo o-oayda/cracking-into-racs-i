@@ -1,3 +1,5 @@
+import shlex
+
 configfile: "workflow/config/artifacts.yaml"
 
 # temp paths
@@ -49,6 +51,7 @@ rule all:
       'output/figx-paf-temp.pdf',
       'output/figx-racs-nvss-temp.pdf',
       'output/figx-corner.pdf',
+      'output/figx-skymap.png',
       'output/figx-samples.pdf',
       'output/figx-posterior-predictive-residuals.pdf',
       'output/figx-clustering.pdf',
@@ -173,6 +176,8 @@ rule corner:
     low3_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID]
   output:
     'output/figx-corner.pdf'
+  params:
+    coordinates='equatorial'
   log:
     'log/corner.log'
   shell:
@@ -180,6 +185,7 @@ rule corner:
     python scripts/figx-corner.py \
       --mid1-artifact {input.mid1_artifact:q} \
       --low3-artifact {input.low3_artifact:q} \
+      --coordinates {params.coordinates:q} \
       --exclude-log10-n-initial-samples \
       --output {output:q} \
       > {log:q} 2>&1
