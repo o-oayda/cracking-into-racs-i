@@ -5,9 +5,10 @@ PAF_DIR_PATH = '../dipole-utils/data/paf_temps'
 LOW3_PATH = '../../catalogue_data/racs/low3/RACS-low3_sources.fits'
 MID1_PATH = '../../catalogue_data/racs/mid1/RACS-mid1_noscale_srl.fits'
 NVSS_PATH = '../../catalogue_data/nvss/Full_NVSS_combined_named.dat'
+NOISEMAP_PATH = '../../catalogue_data/racs/noisemaps'
 
-LOW3_ID = 'racs_low3_surj'
-MID1_ID = 'racs_mid1_surj'
+LOW3_ID = 'racs_low3_fiducial'
+MID1_ID = 'racs_mid1_fiducial'
 
 
 ANALYSIS_ARTIFACTS = config["artifacts"]
@@ -49,7 +50,10 @@ rule all:
       'output/figx-racs-nvss-temp.pdf',
       'output/figx-corner.pdf',
       'output/figx-samples.pdf',
-      'output/figx-posterior-predictive-residuals.pdf'
+      'output/figx-posterior-predictive-residuals.pdf',
+      'output/figx-clustering.pdf',
+      'output/figx-tempmap.pdf',
+      'output/figx-median-residuals.pdf'
     ]
 
 
@@ -116,6 +120,7 @@ rule paf_temp_plot:
 rule racs_nvss_ratio_plot:
   input:
     paf_dir_path=PAF_DIR_PATH,
+    noisemap_path=NOISEMAP_PATH,
     low3_path=LOW3_PATH,
     mid1_path=MID1_PATH,
     nvss_path=NVSS_PATH,
@@ -136,6 +141,7 @@ rule racs_nvss_ratio_plot:
       --mid1-path {input.mid1_path:q} \
       --nvss-path {input.nvss_path:q} \
       --paf-dir-path {input.paf_dir_path} \
+      --noisemap-dir {input.noisemap_path} \
       --low3-artifact {input.low3_artifact:q} \
       --mid1-artifact {input.mid1_artifact:q} \
       > {log:q} 2>&1
@@ -182,6 +188,7 @@ rule corner:
 rule posterior_predictive_residuals:
   input:
     paf_dir_path=PAF_DIR_PATH,
+    noisemap_path=NOISEMAP_PATH,
     low3_catalogue_path=LOW3_PATH,
     mid1_catalogue_path=MID1_PATH,
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
@@ -207,9 +214,67 @@ rule posterior_predictive_residuals:
       --low3-catalogue-path {input.low3_catalogue_path:q} \
       --mid1-catalogue-path {input.mid1_catalogue_path:q} \
       --paf-dir-path {input.paf_dir_path:q} \
+      --noisemap-path {input.noisemap_path:q} \
       --backend {params.backend:q} \
       --n-workers {threads} \
       --batch-size {params.batch_size} \
+      --output {output:q} \
+      > {log:q} 2>&1
+    """
+
+rule clustering:
+  input:
+    low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+  output:
+    "output/figx-clustering.pdf"
+  log:
+    "log/clustering.log"
+  shell:
+    """
+    python scripts/figx-clustering.py \
+      --mid1-artifact {input.mid1_artifact:q} \
+      --low3-artifact {input.low3_artifact:q} \
+      > {log:q} 2>&1
+    """
+
+rule tempmap:
+  input:
+    low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+  output:
+    "output/figx-tempmap.pdf"
+  log:
+    "log/tempmap.log"
+  shell:
+    """
+    python scripts/figx-tempmap.py \
+      --mid1-artifact {input.mid1_artifact:q} \
+      --low3-artifact {input.low3_artifact:q} \
+      > {log:q} 2>&1
+    """
+
+rule median_predictive:
+  input:
+    low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    low3_catalogue_path=LOW3_PATH,
+    mid1_catalogue_path=MID1_PATH,
+    paf_dir_path=PAF_DIR_PATH,
+    noisemap_path=NOISEMAP_PATH
+  output:
+    'output/figx-median-residuals.pdf'
+  log:
+    'log/median_predictive.log'
+  shell:
+    """
+    python scripts/figx-median-residuals.py \
+      --low3-artifact {input.low3_artifact:q} \
+      --mid1-artifact {input.mid1_artifact:q} \
+      --low3-catalogue-path {input.low3_catalogue_path:q} \
+      --mid1-catalogue-path {input.mid1_catalogue_path:q} \
+      --paf-dir-path {input.paf_dir_path:q} \
+      --noisemap-dir {input.noisemap_path:q} \
       --output {output:q} \
       > {log:q} 2>&1
     """

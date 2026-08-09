@@ -44,6 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--low3-catalogue-path', type=Path, required=True)
     parser.add_argument('--mid1-catalogue-path', type=Path, required=True)
     parser.add_argument('--paf-dir-path', type=Path, required=True)
+    parser.add_argument('--noisemap-dir', type=Path, required=True)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument(
         '--output',
@@ -72,6 +73,7 @@ def simulate_smoothed_map(
     artifact_path: Path,
     catalogue_path: Path,
     paf_dir_path: Path,
+    noisemap_dir: Path,
     expected_product: str,
     rng_key,
 ) -> NDArray[np.floating]:
@@ -82,6 +84,7 @@ def simulate_smoothed_map(
         )
     config.catalogue_path = str(catalogue_path.expanduser())
     config.paf_temperature_data_dir = str(paf_dir_path.expanduser())
+    config.noisemap_data_dir = noisemap_dir
     config.downscale_nside = None
     _, native_mask = load_reference_observation(
         artifact_path,
@@ -160,6 +163,7 @@ def main() -> None:
         args.low3_artifact,
         args.low3_catalogue_path,
         args.paf_dir_path,
+        args.noisemap_dir,
         'low3',
         low3_key,
     )
@@ -167,6 +171,7 @@ def main() -> None:
         args.mid1_artifact,
         args.mid1_catalogue_path,
         args.paf_dir_path,
+        args.noisemap_dir,
         'mid1',
         mid1_key,
     )

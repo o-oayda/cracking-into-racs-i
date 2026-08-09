@@ -53,6 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--low3-catalogue-path", type=Path, required=True)
     parser.add_argument("--mid1-catalogue-path", type=Path, required=True)
     parser.add_argument("--paf-dir-path", type=Path, required=True)
+    parser.add_argument("--noisemap-path", type=Path, required=True)
     parser.add_argument(
         "--n-samples",
         type=int,
@@ -141,6 +142,7 @@ def prepare_model_config(
     artifact_path: Path,
     catalogue_path: Path,
     paf_dir_path: Path,
+    noisemap_path: Path,
     expected_product: str,
 ) -> tuple[object, NDArray[np.float32], NDArray[np.bool_]]:
     config = load_model_config(artifact_path)
@@ -154,6 +156,7 @@ def prepare_model_config(
     # the archived native reference must instead remain at NSIDE 64.
     config.downscale_nside = None
     config.store_final_samples = False
+    config.noisemap_data_dir = noisemap_path
     reference, native_mask = load_reference_observation(
         artifact_path,
         load_native=True,
@@ -232,6 +235,7 @@ def posterior_predictive_residual(
     artifact_path: Path,
     catalogue_path: Path,
     paf_dir_path: Path,
+    noisemap_path: Path,
     expected_product: str,
     n_samples: int,
     backend: Backend,
@@ -244,6 +248,7 @@ def posterior_predictive_residual(
         artifact_path,
         catalogue_path,
         paf_dir_path,
+        noisemap_path,
         expected_product,
     )
     theta = draw_posterior_parameters(artifact_path, n_samples, posterior_seed)
@@ -330,6 +335,7 @@ def main() -> None:
         args.low3_artifact,
         args.low3_catalogue_path,
         args.paf_dir_path,
+        args.noisemap_path,
         "low3",
         args.n_samples,
         args.backend,
@@ -342,6 +348,7 @@ def main() -> None:
         args.mid1_artifact,
         args.mid1_catalogue_path,
         args.paf_dir_path,
+        args.noisemap_path,
         "mid1",
         args.n_samples,
         args.backend,

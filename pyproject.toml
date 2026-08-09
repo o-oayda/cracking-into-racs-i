@@ -22,7 +22,7 @@ dependencies = [
 
 [tool.uv.sources]
 dipole-utils = { git = "https://github.com/o-oayda/dipole-utils.git" }
-catsim = { git = "https://github.com/o-oayda/catsim.git" }
+catsim = { git = "https://github.com/o-oayda/catsim.git", rev = "racs-noise-lookup" }
 
 
 [project.optional-dependencies]

@@ -103,7 +103,7 @@ def draw_plots(data_tuple, ax, colors, marker):
     )
     ax[1].set_ylabel(r"Residual ($\sigma$)")
     ax[0].set_ylabel("Probability")
-    ax[1].set_xlabel("Pixel count")
+    ax[1].set_xlabel("Source count per pixel")
     # ax[0].set_yscale("log")
     ax[1].set_ylim(-8, 8)
     ax[0].set_xlim(None, 29)

@@ -11,6 +11,7 @@ from ciri.plotting import smooth_map
 
 
 NATIVE_NSIDE = 64
+SMOOTH_SCALE_STERADIANS = 1.
 
 
 plt.rcParams.update(
@@ -41,7 +42,11 @@ def load_smoothed_map(artifact_path: Path) -> np.ndarray:
             f'Native reference observation must have shape {expected_shape}; '
             f'got {reference_observation.shape}'
         )
-    return smooth_map(reference_observation, only_return_data=True)
+    return smooth_map(
+        reference_observation,
+        angle_scale=SMOOTH_SCALE_STERADIANS,
+        only_return_data=True
+    )
 
 
 def add_sample_panel(

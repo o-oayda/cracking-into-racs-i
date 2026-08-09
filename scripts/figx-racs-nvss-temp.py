@@ -75,6 +75,11 @@ def parse_args():
         help='Path to dir containing PAF temps.'
     )
     argparser.add_argument(
+        '--noisemap-dir',
+        type=str,
+        help='Path to dor containing noisemaps.'
+    )
+    argparser.add_argument(
         '--low3-artifact',
         type=Path,
         required=True,
@@ -124,13 +129,14 @@ def compute_flux_ratio(common_sources: Table, survey: str):
     return flux_ratio
 
 
-def get_lookups_from_model(racs_sample, paf_dir_path):
+def get_lookups_from_model(racs_sample, paf_dir_path, noisemap_dir):
     # initialise a blank model to load catsim lookups
     model = Racs(
         RacsConfig(
             FLUX_MIN,
             product=survey_to_product[racs_sample],
-            paf_temperature_data_dir=paf_dir_path
+            paf_temperature_data_dir=paf_dir_path,
+            noisemap_data_dir=noisemap_dir
         )
     )
     model.initialise_data()
@@ -157,7 +163,7 @@ def draw_ratio_plot(x, y, y_err, **kwargs):
 
 
 def get_ratio_per_temp_bin(
-        racs_sample: str, racs_path: str, nvss_path: str, paf_dir_path: str
+    racs_sample: str, racs_path: str, nvss_path: str, paf_dir_path: str, noisemap_dir: str
     ):
     racs = CatalogueToMap(load_catalogue(racs_path))
     nvss = CatalogueToMap(load_catalogue(nvss_path))
@@ -171,7 +177,7 @@ def get_ratio_per_temp_bin(
         racs.make_cut('Tile_sep', minimum=None, maximum=2)
         print(np.max(racs.catalogue['Tile_sep']))
 
-    temp_by_idx, idx_by_sbid = get_lookups_from_model(racs_sample, paf_dir_path)
+    temp_by_idx, idx_by_sbid = get_lookups_from_model(racs_sample, paf_dir_path, noisemap_dir)
     tile_indices = sbid_to_tile_idx(racs.get_catalogue()['SBID'], idx_by_sbid)
     racs_temperature = idx_to_temp(temp_by_idx, tile_indices)
     cat = racs.get_catalogue()
@@ -277,11 +283,11 @@ def main():
     args = parse_args()
     low3_bins, low3_ratios, low3_errs = get_ratio_per_temp_bin(
         'low3', racs_path=args.low3_path, nvss_path=args.nvss_path,
-        paf_dir_path=args.paf_dir_path
+        paf_dir_path=args.paf_dir_path, noisemap_dir=args.noisemap_dir
     )
     mid1_bins, mid1_ratios, mid1_errs = get_ratio_per_temp_bin(
         'mid1', racs_path=args.mid1_path, nvss_path=args.nvss_path,
-        paf_dir_path=args.paf_dir_path
+        paf_dir_path=args.paf_dir_path, noisemap_dir=args.noisemap_dir
     )
 
     plt.figure(figsize=(4,3))
