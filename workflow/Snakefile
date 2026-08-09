@@ -12,6 +12,12 @@ NOISEMAP_PATH = '../../catalogue_data/racs/noisemaps'
 LOW3_ID = 'racs_low3_fiducial'
 MID1_ID = 'racs_mid1_fiducial'
 
+# Add future models here as {"label": trusted LaTeX, "mid1_id": artifact key,
+# "low3_id": artifact key}. The rule inputs and repeated CLI arguments below
+# are derived from this single model list.
+LOG_BAYES_COMPARISONS = ()
+LOG_BAYES_DISCARD_ROUNDS = 4
+
 
 ANALYSIS_ARTIFACTS = config["artifacts"]
 POSTERIOR_PREDICTIVE_BACKEND = config.get(
@@ -33,6 +39,33 @@ ANALYSIS_VERIFICATION_REPORTS = {
   )
   for name, artifact in ANALYSIS_ARTIFACTS.items()
 }
+
+
+def log_bayes_comparison_artifacts():
+  return [
+    ANALYSIS_ARTIFACTS[comparison[artifact_id]]["path"]
+    for comparison in LOG_BAYES_COMPARISONS
+    for artifact_id in ("mid1_id", "low3_id")
+  ]
+
+
+def log_bayes_comparison_reports():
+  return [
+    ANALYSIS_VERIFICATION_REPORTS[comparison[artifact_id]]
+    for comparison in LOG_BAYES_COMPARISONS
+    for artifact_id in ("mid1_id", "low3_id")
+  ]
+
+
+def log_bayes_comparison_args():
+  return " ".join(
+    "--comparison {} {} {}".format(
+      shlex.quote(comparison["label"]),
+      shlex.quote(ANALYSIS_ARTIFACTS[comparison["mid1_id"]]["path"]),
+      shlex.quote(ANALYSIS_ARTIFACTS[comparison["low3_id"]]["path"]),
+    )
+    for comparison in LOG_BAYES_COMPARISONS
+  )
 
 
 def analysis_artifact_path(wildcards):
@@ -57,6 +90,10 @@ rule all:
       'output/figx-clustering.pdf',
       'output/figx-tempmap.pdf',
       'output/figx-median-residuals.pdf'
+    ],
+    tables = [
+      'output/tablex-log-bayes-mid1.tex',
+      'output/tablex-log-bayes-low3.tex',
     ]
 
 
@@ -187,6 +224,64 @@ rule corner:
       --low3-artifact {input.low3_artifact:q} \
       --coordinates {params.coordinates:q} \
       --exclude-log10-n-initial-samples \
+      --output {output:q} \
+      > {log:q} 2>&1
+    """
+
+rule log_bayes_tables:
+  input:
+    mid1_fiducial_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    mid1_fiducial_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID],
+    low3_fiducial_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    low3_fiducial_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID],
+    comparison_artifacts=log_bayes_comparison_artifacts(),
+    comparison_reports=log_bayes_comparison_reports()
+  params:
+    discard_rounds=LOG_BAYES_DISCARD_ROUNDS,
+    comparison_args=log_bayes_comparison_args()
+  output:
+    mid1='output/tablex-log-bayes-mid1.tex',
+    low3='output/tablex-log-bayes-low3.tex'
+  log:
+    'log/log-bayes-tables.log'
+  shell:
+    """
+    python scripts/tablex-log-bayes.py \
+      --mid1-fiducial-artifact {input.mid1_fiducial_artifact:q} \
+      --low3-fiducial-artifact {input.low3_fiducial_artifact:q} \
+      --discard-rounds {params.discard_rounds:q} \
+      --mid1-output {output.mid1:q} \
+      --low3-output {output.low3:q} \
+      {params.comparison_args} \
+      > {log:q} 2>&1
+    """
+
+rule skymap:
+  input:
+    mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    mid1_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID],
+    low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
+    low3_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID]
+  params:
+    coordinates='equatorial',
+    quadrants=[1,3],
+    remove_longitude_ticks=[150],
+    O26_point=('galactic', 221, 44, 'O26'),
+    B25_point=('equatorial', 165, -10.8, 'B25'),
+  output:
+    'output/figx-skymap.png'
+  log:
+    'log/skymap.log'
+  shell:
+    """
+    python scripts/figx-skymap.py \
+      --mid1-artifact {input.mid1_artifact:q} \
+      --low3-artifact {input.low3_artifact:q} \
+      --coordinates {params.coordinates:q} \
+      --quadrants {params.quadrants:q} \
+      --remove-longitude-ticks {params.remove_longitude_ticks:q} \
+      --point {params.O26_point:q} \
+      --point {params.B25_point:q} \
       --output {output:q} \
       > {log:q} 2>&1
     """

@@ -17,6 +17,7 @@ FINAL_POSTERIOR_PATH = "posterior/final-posterior.csv"
 MODEL_CONFIG_PATH = "provenance/model_config.json"
 REFERENCE_OBSERVATION_PATH = "observation/reference-observation.npz"
 NATIVE_OBSERVATION_PATH = "observation/reference-observation-native.npz"
+PER_ROUND_LOG_EVIDENCE_PATH = "posterior/per-round-log-evidence.npy"
 
 
 def list_artifact_files(artifact_path: str | Path) -> tuple[str, ...]:
@@ -36,6 +37,49 @@ def load_final_posterior(
     with ZipFile(path) as archive:
         with archive.open(FINAL_POSTERIOR_PATH) as stream:
             return read_csv(stream, label=sample_label)
+
+
+def load_per_round_log_evidence(
+    artifact_path: str | Path,
+) -> NDArray[np.float64]:
+    """Load and validate per-round log evidence and stored estimator errors.
+
+    The artifact member has shape ``(2, n_rounds)``: row zero contains log
+    evidences and row one contains the estimator errors stored by the analysis.
+    """
+    path = Path(artifact_path).expanduser()
+    with ZipFile(path) as archive:
+        try:
+            payload = archive.read(PER_ROUND_LOG_EVIDENCE_PATH)
+        except KeyError as exc:
+            raise ValueError(
+                f"Artifact is missing {PER_ROUND_LOG_EVIDENCE_PATH}"
+            ) from exc
+
+    try:
+        evidence = np.load(BytesIO(payload), allow_pickle=False)
+    except (OSError, ValueError) as exc:
+        raise ValueError(
+            f"Artifact member {PER_ROUND_LOG_EVIDENCE_PATH} is not a valid NumPy array"
+        ) from exc
+
+    if (
+        not np.issubdtype(evidence.dtype, np.number)
+        or np.issubdtype(evidence.dtype, np.complexfloating)
+    ):
+        raise ValueError("Per-round log evidence must be a real numeric array")
+    if evidence.ndim != 2 or evidence.shape[0] != 2:
+        raise ValueError(
+            "Per-round log evidence must have shape (2, n_rounds); "
+            f"got {evidence.shape}"
+        )
+
+    result = np.asarray(evidence, dtype=np.float64).copy()
+    if not np.all(np.isfinite(result)):
+        raise ValueError("Per-round log evidence and stored errors must be finite")
+    if np.any(result[1] < 0.0):
+        raise ValueError("Stored per-round log-evidence errors must be nonnegative")
+    return result
 
 
 def load_reference_observation(
