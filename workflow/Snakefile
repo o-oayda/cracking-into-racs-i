@@ -13,10 +13,27 @@ LOW3_ID = 'racs_low3_fiducial'
 MID1_ID = 'racs_mid1_fiducial'
 
 # Add future models here as {"label": trusted LaTeX, "mid1_id": artifact key,
-# "low3_id": artifact key}. The rule inputs and repeated CLI arguments below
-# are derived from this single model list.
-LOG_BAYES_COMPARISONS = ()
-LOG_BAYES_DISCARD_ROUNDS = 4
+# "low3_id": artifact key, "flag": optional trusted LaTeX}. The rule inputs
+# and repeated CLI arguments below are derived from this single model list.
+LOG_BAYES_COMPARISONS = [
+  {
+    "label": "CMB direction; temperature response; clustering",
+    "mid1_id": "racs_mid1_cmbdir",
+    "low3_id": "racs_low3_cmbdir",
+  },
+  {
+    "label": "Free dipole; no temperature response; clustering",
+    "mid1_id": "racs_mid1_notemp",
+    "low3_id": "racs_low3_notemp",
+  },
+  {
+    "label": "Free dipole; temperature response; no clustering",
+    "mid1_id": "racs_mid1_noclus",
+    "low3_id": "racs_low3_noclus",
+    "flag": r"\dag",
+  },
+]
+LOG_BAYES_DISCARD_ROUNDS = 5
 
 
 ANALYSIS_ARTIFACTS = config["artifacts"]
@@ -59,10 +76,15 @@ def log_bayes_comparison_reports():
 
 def log_bayes_comparison_args():
   return " ".join(
-    "--comparison {} {} {}".format(
-      shlex.quote(comparison["label"]),
-      shlex.quote(ANALYSIS_ARTIFACTS[comparison["mid1_id"]]["path"]),
-      shlex.quote(ANALYSIS_ARTIFACTS[comparison["low3_id"]]["path"]),
+    " ".join(
+      shlex.quote(argument)
+      for argument in (
+        "--comparison",
+        comparison["label"],
+        ANALYSIS_ARTIFACTS[comparison["mid1_id"]]["path"],
+        ANALYSIS_ARTIFACTS[comparison["low3_id"]]["path"],
+        *([comparison["flag"]] if comparison.get("flag") else []),
+      )
     )
     for comparison in LOG_BAYES_COMPARISONS
   )

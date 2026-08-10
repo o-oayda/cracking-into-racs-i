@@ -29,11 +29,17 @@ def nonnegative_integer(value: str) -> int:
 def validate_comparisons(
     values: list[list[str]] | None,
 ) -> tuple[ComparisonArtifacts, ...]:
-    """Validate strict CLI comparison triples while preserving their order."""
+    """Validate CLI comparison triples or flagged quadruples in input order."""
     comparisons = []
     labels = set()
     for index, value in enumerate(values or (), start=1):
-        label, mid1_artifact, low3_artifact = value
+        if len(value) not in (3, 4):
+            raise ValueError(
+                f"Comparison {index} must have LABEL, MID1_ARTIFACT, "
+                "LOW3_ARTIFACT, and optionally FLAG"
+            )
+        label, mid1_artifact, low3_artifact, *optional_flag = value
+        flag = optional_flag[0].strip() if optional_flag else ""
         normalized_label = label.strip()
         if not normalized_label:
             raise ValueError(f"Comparison {index} label must not be blank")
@@ -41,7 +47,12 @@ def validate_comparisons(
             raise ValueError(f"Duplicate comparison label: {label!r}")
         labels.add(normalized_label)
         comparisons.append(
-            ComparisonArtifacts(label, Path(mid1_artifact), Path(low3_artifact))
+            ComparisonArtifacts(
+                label,
+                Path(mid1_artifact),
+                Path(low3_artifact),
+                flag,
+            )
         )
     return tuple(comparisons)
 
@@ -64,9 +75,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--comparison",
         action="append",
-        nargs=3,
-        metavar=("LABEL", "MID1_ARTIFACT", "LOW3_ARTIFACT"),
-        help="Add a trusted-LaTeX comparison label and matching artifact pair.",
+        nargs="+",
+        metavar="VALUE",
+        help=(
+            "Add LABEL, MID1_ARTIFACT, LOW3_ARTIFACT, and an optional "
+            "trusted-LaTeX FLAG."
+        ),
     )
     args = parser.parse_args()
     try:
@@ -101,6 +115,7 @@ def main() -> None:
                 comparison.label,
                 summarized_artifact(comparison.mid1_artifact, args.discard_rounds),
                 mid1_fiducial,
+                comparison.flag,
             )
         )
         low3_rows.append(
@@ -108,6 +123,7 @@ def main() -> None:
                 comparison.label,
                 summarized_artifact(comparison.low3_artifact, args.discard_rounds),
                 low3_fiducial,
+                comparison.flag,
             )
         )
 

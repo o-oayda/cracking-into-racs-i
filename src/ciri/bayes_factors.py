@@ -31,6 +31,7 @@ class ComparisonArtifacts:
     label: str
     mid1_artifact: Path
     low3_artifact: Path
+    flag: str = ""
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ class BayesFactor:
     label: str
     value: float
     uncertainty: float
+    flag: str = ""
 
 
 def summarize_log_evidence(
@@ -74,12 +76,14 @@ def comparison_log_bayes_factor(
     label: str,
     comparison: EvidenceSummary,
     fiducial: EvidenceSummary,
+    flag: str = "",
 ) -> BayesFactor:
     """Return comparison-minus-fiducial log Bayes factor and uncertainty."""
     return BayesFactor(
         label=label,
         value=comparison.mean - fiducial.mean,
         uncertainty=math.hypot(comparison.uncertainty, fiducial.uncertainty),
+        flag=flag,
     )
 
 
@@ -104,18 +108,27 @@ def format_value_uncertainty(value: float, uncertainty: float) -> str:
 
 
 def render_log_bayes_table(comparisons: Sequence[BayesFactor] = ()) -> str:
-    """Render a booktabs tabular fragment with the fiducial model first."""
+    """Render a booktabs table ordered by descending log Bayes factor."""
     lines = [
         r"\begin{tabular}{@{}lr@{}}",
         r"\toprule",
-        r"Model & $\ln B$ \\",
+        r"Model & $\ln \mathcal{B}$ \\",
         r"\midrule",
-        rf"{FIDUCIAL_LABEL} & \textemdash{{}} \\",
     ]
-    lines.extend(
-        rf"{comparison.label} & "
-        rf"${format_value_uncertainty(comparison.value, comparison.uncertainty)}$ \\"
+    rows = [(0.0, rf"{FIDUCIAL_LABEL} & \textemdash{{}} \\")]
+    rows.extend(
+        (
+            comparison.value,
+            rf"{comparison.label}$^{{{comparison.flag}}}$ & "
+            rf"${format_value_uncertainty(comparison.value, comparison.uncertainty)}$ \\"
+            if comparison.flag
+            else rf"{comparison.label} & "
+            rf"${format_value_uncertainty(comparison.value, comparison.uncertainty)}$ \\",
+        )
         for comparison in comparisons
+    )
+    lines.extend(
+        row for _, row in sorted(rows, key=lambda item: item[0], reverse=True)
     )
     lines.extend((r"\bottomrule", r"\end{tabular}"))
     return "\n".join(lines) + "\n"
