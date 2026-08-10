@@ -1,20 +1,20 @@
 import argparse
 from pathlib import Path
+
 import matplotlib.pyplot as plt
+from matplotlib.colors import to_rgba
+from matplotlib.patches import Patch
+import numpy as np
 from scipy.stats import poisson
 from scipy.special import gamma
-from ciri.artifact_io import load_reference_observation
-import numpy as np
 
+from ciri.artifact_io import load_reference_observation
 from ciri.palette import DRY_SAGE, MUTED_TEAL_DARK, ROSEWOOD, TANGERINE_DREAM_DARK
-plt.rcParams.update(
-    {
-        "text.usetex": True,
-        "text.latex.preamble": r"\usepackage{sfmath}",
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica", "DejaVu Sans"],
-    }
-)
+from ciri.plot_style import configure_plot_style
+
+
+configure_plot_style()
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -51,7 +51,7 @@ def get_counts_residuals(path):
     return x, finite_x0, bin_edges, poisson_probability, poisson_residual, (more_x, continuous_extension)
 
 
-def draw_plots(data_tuple, ax, colors, marker):
+def draw_plots(data_tuple, ax, colors, marker, label):
     x, finite_x0, bin_edges, poisson_probability, poisson_residual, (more_x, continuous_extension) = data_tuple
     ax[0].hist(
         finite_x0,
@@ -110,6 +110,13 @@ def draw_plots(data_tuple, ax, colors, marker):
     ax[1].set_yticks([-5,-2,2,5])
     ax[0].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
 
+    return Patch(
+        facecolor=to_rgba(colors[0], 0.2),
+        edgecolor=colors[0],
+        linewidth=2,
+        label=label,
+    )
+
 def main():
     args = parse_args()
     data_tuple_low3 = get_counts_residuals(args.low3_artifact)
@@ -123,8 +130,23 @@ def main():
         gridspec_kw={"height_ratios": (2, 1), "hspace": 0.0},
     )
 
-    draw_plots(data_tuple_low3, axes, (MUTED_TEAL_DARK, TANGERINE_DREAM_DARK), marker='o')
-    draw_plots(data_tuple_mid1, axes, (ROSEWOOD, TANGERINE_DREAM_DARK), marker='s')
+    histogram_handles = [
+        draw_plots(
+            data_tuple_low3,
+            axes,
+            (MUTED_TEAL_DARK, TANGERINE_DREAM_DARK),
+            marker='o',
+            label='RACS-low3',
+        ),
+        draw_plots(
+            data_tuple_mid1,
+            axes,
+            (ROSEWOOD, TANGERINE_DREAM_DARK),
+            marker='s',
+            label='RACS-mid1',
+        ),
+    ]
+    axes[0].legend(handles=histogram_handles)
     plt.savefig("output/figx-clustering.pdf", bbox_inches="tight")
 
 if __name__ == "__main__":

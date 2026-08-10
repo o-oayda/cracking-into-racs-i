@@ -8,20 +8,14 @@ import numpy as np
 
 from ciri.artifact_io import load_reference_observation
 from ciri.plotting import smooth_map
+from ciri.plot_style import configure_plot_style
 
 
 NATIVE_NSIDE = 64
 SMOOTH_SCALE_STERADIANS = 1.
 
 
-plt.rcParams.update(
-    {
-        "text.usetex": True,
-        "text.latex.preamble": r"\usepackage{sfmath}",
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica", "DejaVu Sans"],
-    }
-)
+configure_plot_style()
 
 
 def parse_args() -> argparse.Namespace:

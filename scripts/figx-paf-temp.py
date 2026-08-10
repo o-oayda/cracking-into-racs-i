@@ -15,14 +15,10 @@ import numpy as np
 import pandas as pd
 
 from ciri.palette import DARK_AMETHYST, DRY_SAGE, HOT_FUCHSIA, ROSY_TAUPE, ROYAL_PLUM, STEEL_BLUE, TANGERINE_DREAM
-plt.rcParams.update(
-    {
-        "text.usetex": True,
-        "text.latex.preamble": r"\usepackage{sfmath}",
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica", "DejaVu Sans"],
-    }
-)
+from ciri.plot_style import configure_plot_style
+
+
+configure_plot_style()
 
 
 EXAMPLE_SAMPLE = 'low3'

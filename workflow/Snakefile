@@ -32,6 +32,11 @@ LOG_BAYES_COMPARISONS = [
     "low3_id": "racs_low3_noclus",
     "flag": r"\dag",
   },
+  {
+    "label": "CMB dipole; temperature response; no clustering",
+    "mid1_id": "racs_mid1_cmbdip",
+    "low3_id": "racs_low3_cmbdip"
+  },
 ]
 LOG_BAYES_DISCARD_ROUNDS = 5
 

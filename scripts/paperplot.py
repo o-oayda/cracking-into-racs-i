@@ -8,17 +8,15 @@ import warnings
 from getdist import plots
 import numpy as np
 
+from ciri.plot_style import plot_rc_params
+
 
 class PaperPlotter(plots.GetDistPlotter):
     """GetDist style for publication plots."""
 
     marginal_title_x = 0.06
 
-    _style_rc = {
-        "text.usetex": True,
-        "font.family": "serif",
-        "font.serif": ["Computer Modern"],
-    }
+    _style_rc = plot_rc_params()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

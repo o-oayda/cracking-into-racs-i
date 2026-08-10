@@ -87,3 +87,19 @@ artifacts:
     source_repository: https://github.com/o-oayda/sbi.git
     source_commit: 1c426a4f9ce854e6d1cfe2e5b7b10b5ca96fd7c5
     require_clean: false
+  racs_low3_cmbdip:
+    path: artifacts/cache/racs_low3_cmbdip.a7ae8bbed531f59c37dbe66d54cc8db34745be3c58fac38d2d0695c11ba57720.analysis.zip
+    sha256: a7ae8bbed531f59c37dbe66d54cc8db34745be3c58fac38d2d0695c11ba57720
+    experiment_id: racs_low3_cmbdip
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: eeca395d51e2a95e2f08c89d543ed2ca31e7e8f8
+    require_clean: false
+  racs_mid1_cmbdip:
+    path: artifacts/cache/racs_mid1_cmbdip.c4ec996d05e56c5914fd8d095956d30a103a6f7c744a6e3a16c6b6b51e749173.analysis.zip
+    sha256: c4ec996d05e56c5914fd8d095956d30a103a6f7c744a6e3a16c6b6b51e749173
+    experiment_id: racs_mid1_cmbdip
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: eeca395d51e2a95e2f08c89d543ed2ca31e7e8f8
+    require_clean: false

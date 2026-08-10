@@ -12,14 +12,10 @@ from catsim.racs import Racs, RacsConfig
 import matplotlib.pyplot as plt
 from ciri.palette import CELADON, DRY_SAGE, MUTED_TEAL, MUTED_TEAL_DARK, ROSEWOOD
 from ciri.artifact_io import load_final_posterior
-plt.rcParams.update(
-    {
-        "text.usetex": True,
-        "text.latex.preamble": r"\usepackage{sfmath}",
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica", "DejaVu Sans"],
-    }
-)
+from ciri.plot_style import configure_plot_style
+
+
+configure_plot_style()
 
 
 

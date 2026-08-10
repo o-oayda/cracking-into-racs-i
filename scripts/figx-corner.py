@@ -13,12 +13,6 @@ from ciri.palette import MUTED_TEAL, ROSEWOOD, MUTED_TEAL_DARK, TANGERINE_DREAM_
 
 plots.set_active_style(style_name)
 import matplotlib.pyplot as plt
-plt.rcParams.update(
-    {
-        "text.usetex": True,
-        "text.latex.preamble": r"\usepackage{amsmath}",
-    }
-)
 
 
 SAMPLE_COLORS = (ROSEWOOD, MUTED_TEAL_DARK) #, TANGERINE_DREAM_DARK)

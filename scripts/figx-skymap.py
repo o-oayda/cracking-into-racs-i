@@ -8,6 +8,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from ciri.palette import MUTED_TEAL_DARK, ROSEWOOD
+from ciri.plot_style import configure_plot_style
 from ciri.skymap import (
     SkyFrame,
     additional_point_legend_handles,
@@ -29,14 +30,7 @@ from ciri.skymap import (
     project_healpix_mollweide,
     selected_mollweide_bbox,
 )
-plt.rcParams.update(
-    {
-        "text.usetex": True,
-        "text.latex.preamble": r"\usepackage{sfmath}",
-        "font.family": "sans-serif",
-        "font.sans-serif": ["Helvetica", "DejaVu Sans"],
-    }
-)
+configure_plot_style()
 
 POSTERIORS = (
     ("RACS-low3", MUTED_TEAL_DARK),
