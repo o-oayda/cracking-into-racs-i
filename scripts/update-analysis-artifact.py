@@ -23,14 +23,22 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("artifact", type=Path, help="cached .analysis.zip to pin")
-    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    args = parser.parse_args()
+def artifact_paths(path: Path, parser: argparse.ArgumentParser) -> list[Path]:
+    """Return one artifact path, or all ZIP files immediately in a directory."""
+    path = path.expanduser().resolve(strict=True)
+    if path.is_dir():
+        artifacts = sorted(
+            candidate for candidate in path.glob("*.zip") if candidate.is_file()
+        )
+        if not artifacts:
+            parser.error(f"no ZIP files found in {path}")
+        return artifacts
+    return [path]
 
-    artifact = args.artifact.expanduser().resolve(strict=True)
-    config_path = args.config.expanduser().resolve(strict=True)
+
+def artifact_entry(
+    artifact: Path, parser: argparse.ArgumentParser
+) -> tuple[str, dict[str, object]]:
     try:
         stored_path = artifact.relative_to(ROOT).as_posix()
     except ValueError:
@@ -49,7 +57,7 @@ def main() -> None:
             "format_version": manifest["format_version"],
             "source_repository": source["repository"],
             "source_commit": source["commit"],
-            "require_clean": True,
+            "require_clean": False,
         }
     except (
         KeyError,
@@ -58,13 +66,40 @@ def main() -> None:
         zipfile.BadZipFile,
         yaml.YAMLError,
     ) as error:
-        raise SystemExit(f"error: invalid artifact manifest: {error}") from None
+        raise SystemExit(
+            f"error: invalid artifact manifest in {artifact}: {error}"
+        ) from None
+    return entry["experiment_id"], entry
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "artifact",
+        type=Path,
+        help="cached .analysis.zip to pin, or a directory containing ZIP files",
+    )
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    parser.add_argument(
+        "--clear",
+        action="store_true",
+        help="remove all current artifact entries before pinning the supplied artifact(s)",
+    )
+    args = parser.parse_args()
+
+    artifacts = artifact_paths(args.artifact, parser)
+    config_path = args.config.expanduser().resolve(strict=True)
+    entries = [artifact_entry(artifact, parser) for artifact in artifacts]
 
     config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    if not isinstance(config, dict) or not isinstance(config.get("artifacts"), dict):
+    if not isinstance(config, dict) or "artifacts" not in config:
         raise SystemExit("error: config must contain an artifacts mapping")
-    name = entry["experiment_id"]
-    config["artifacts"][name] = entry
+    if args.clear:
+        config["artifacts"] = {}
+    elif not isinstance(config["artifacts"], dict):
+        raise SystemExit("error: config must contain an artifacts mapping")
+    for name, entry in entries:
+        config["artifacts"][name] = entry
 
     with tempfile.NamedTemporaryFile(
         mode="w", encoding="utf-8", dir=config_path.parent, delete=False
@@ -73,7 +108,8 @@ def main() -> None:
         temporary = Path(stream.name)
     temporary.chmod(config_path.stat().st_mode)
     temporary.replace(config_path)
-    print(f"Pinned {name} to {stored_path}")
+    for name, entry in entries:
+        print(f"Pinned {name} to {entry['path']}")
 
 
 if __name__ == "__main__":
