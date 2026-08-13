@@ -41,6 +41,8 @@ LOG_BAYES_COMPARISONS = [
   },
 ]
 LOG_BAYES_DISCARD_ROUNDS = 5
+LOG_BAYES_UNCERTAINTY_SIGNIFICANT_FIGURES = 1
+LOG_BAYES_USE_DP = True
 
 
 ANALYSIS_ARTIFACTS = config["artifacts"]
@@ -288,6 +290,8 @@ rule log_bayes_tables:
     comparison_reports=log_bayes_comparison_reports()
   params:
     discard_rounds=LOG_BAYES_DISCARD_ROUNDS,
+    uncertainty_significant_figures=LOG_BAYES_UNCERTAINTY_SIGNIFICANT_FIGURES,
+    rounding_mode_arg="--use-dp" if LOG_BAYES_USE_DP else "",
     comparison_args=log_bayes_comparison_args(),
     comparison_key_args=log_bayes_comparison_key_args()
   output:
@@ -302,6 +306,8 @@ rule log_bayes_tables:
       --mid1-fiducial-artifact {input.mid1_fiducial_artifact:q} \
       --low3-fiducial-artifact {input.low3_fiducial_artifact:q} \
       --discard-rounds {params.discard_rounds:q} \
+      --uncertainty-significant-figures {params.uncertainty_significant_figures:q} \
+      {params.rounding_mode_arg} \
       --mid1-output {output.mid1:q} \
       --low3-output {output.low3:q} \
       --json-output {output.json:q} \

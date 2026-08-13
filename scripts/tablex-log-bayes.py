@@ -27,6 +27,14 @@ def nonnegative_integer(value: str) -> int:
     return converted
 
 
+def positive_integer(value: str) -> int:
+    """Argparse converter for positive integer precision settings."""
+    converted = nonnegative_integer(value)
+    if converted == 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return converted
+
+
 def validate_comparisons(
     values: list[list[str]] | None,
 ) -> tuple[ComparisonArtifacts, ...]:
@@ -63,6 +71,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mid1-fiducial-artifact", type=Path, required=True)
     parser.add_argument("--low3-fiducial-artifact", type=Path, required=True)
     parser.add_argument("--discard-rounds", type=nonnegative_integer, default=4)
+    parser.add_argument(
+        "--uncertainty-significant-figures",
+        type=positive_integer,
+        default=2,
+        help="Significant figures used for ln B uncertainties in TeX output (default: 2).",
+    )
+    parser.add_argument(
+        "--use-dp",
+        action="store_true",
+        help=(
+            "Interpret --uncertainty-significant-figures as decimal places "
+            "rather than significant figures."
+        ),
+    )
     parser.add_argument(
         "--mid1-output",
         type=Path,
@@ -146,7 +168,14 @@ def main() -> None:
         (args.low3_output, low3_rows),
     ):
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(render_log_bayes_table(rows), encoding="utf-8")
+        output.write_text(
+            render_log_bayes_table(
+                rows,
+                significant_figures=args.uncertainty_significant_figures,
+                use_decimal_places=args.use_dp,
+            ),
+            encoding="utf-8",
+        )
 
     if args.json_output is not None:
         if not args.comparison_keys:

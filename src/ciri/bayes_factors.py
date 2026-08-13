@@ -10,6 +10,9 @@ from typing import Sequence
 
 import numpy as np
 from numpy.typing import ArrayLike
+from scipy.integrate import quad
+from scipy.optimize import brentq
+from scipy.stats import t as student_t
 
 
 FIDUCIAL_LABEL = (
@@ -19,10 +22,16 @@ FIDUCIAL_LABEL = (
 
 @dataclass(frozen=True)
 class EvidenceSummary:
-    """Mean and round-to-round sample standard deviation of log evidence."""
+    """Student-t posterior summary of the true log evidence."""
 
     mean: float
-    uncertainty: float
+    scale: float
+    degrees_freedom: int
+
+    @property
+    def uncertainty(self) -> float:
+        """Central one-sigma posterior half-width for the true log evidence."""
+        return student_t.ppf(0.841344746, self.degrees_freedom) * self.scale
 
 
 @dataclass(frozen=True)
@@ -51,8 +60,11 @@ def summarize_log_evidence(
 ) -> EvidenceSummary:
     """Discard positional rounds and summarize retained log evidences.
 
-    Stored estimator errors are validated by the artifact loader but are
-    deliberately not combined into this round-to-round uncertainty.
+    Treat retained rounds as independent Gaussian measurements of an unknown
+    true log evidence with an unknown noise scale. Under the standard Jeffreys
+    prior, the posterior of that true value is Student-t with ``n - 1`` degrees
+    of freedom, location equal to the retained mean, and scale ``s / sqrt(n)``.
+    The stored estimator errors are deliberately not combined into this model.
     """
     if isinstance(discard_rounds, bool) or not isinstance(discard_rounds, int):
         raise ValueError("discard_rounds must be a nonnegative integer")
@@ -69,8 +81,43 @@ def summarize_log_evidence(
         raise ValueError("Retained log evidences must be finite")
     return EvidenceSummary(
         mean=float(np.mean(retained)),
-        uncertainty=float(np.std(retained, ddof=1)),
+        scale=float(np.std(retained, ddof=1) / math.sqrt(retained.size)),
+        degrees_freedom=retained.size - 1,
     )
+
+
+def _difference_student_t_uncertainty(
+    comparison: EvidenceSummary,
+    fiducial: EvidenceSummary,
+) -> float:
+    """Return the central one-sigma half-width of two independent t draws."""
+    target_probability = 0.841344746
+    location = comparison.mean - fiducial.mean
+
+    def cdf(value: float) -> float:
+        standardized_difference = value - location
+
+        def integrand(fiducial_standardized: float) -> float:
+            return student_t.cdf(
+                (standardized_difference + fiducial.scale * fiducial_standardized)
+                / comparison.scale,
+                comparison.degrees_freedom,
+            ) * student_t.pdf(fiducial_standardized, fiducial.degrees_freedom)
+
+        return quad(integrand, -np.inf, np.inf, epsabs=1e-9, epsrel=1e-9)[0]
+
+    characteristic_scale = comparison.scale + fiducial.scale
+    lower = location
+    upper = location + characteristic_scale
+    while cdf(upper) < target_probability:
+        upper = location + 2.0 * (upper - location)
+    quantile = brentq(
+        lambda value: cdf(value) - target_probability,
+        lower,
+        upper,
+        xtol=1e-10,
+    )
+    return quantile - location
 
 
 def comparison_log_bayes_factor(
@@ -79,26 +126,40 @@ def comparison_log_bayes_factor(
     fiducial: EvidenceSummary,
     flag: str = "",
 ) -> BayesFactor:
-    """Return comparison-minus-fiducial log Bayes factor and uncertainty."""
+    """Return a log Bayes factor and its central one-sigma posterior width."""
     return BayesFactor(
         label=label,
         value=comparison.mean - fiducial.mean,
-        uncertainty=math.hypot(comparison.uncertainty, fiducial.uncertainty),
+        uncertainty=_difference_student_t_uncertainty(comparison, fiducial),
         flag=flag,
     )
 
 
-def format_value_uncertainty(value: float, uncertainty: float) -> str:
-    """Format an uncertainty to two significant figures and match its value."""
+def format_value_uncertainty(
+    value: float,
+    uncertainty: float,
+    significant_figures: int = 2,
+    *,
+    use_decimal_places: bool = False,
+) -> str:
+    """Round an uncertainty and its value by significant figures or decimals."""
     if not math.isfinite(value) or not math.isfinite(uncertainty):
         raise ValueError("Bayes-factor value and uncertainty must be finite")
     if uncertainty < 0.0:
         raise ValueError("Bayes-factor uncertainty must be nonnegative")
+    if isinstance(significant_figures, bool) or not isinstance(significant_figures, int):
+        raise ValueError("Rounding precision must be a nonnegative integer")
+    if significant_figures < 0 or (significant_figures == 0 and not use_decimal_places):
+        raise ValueError("Rounding precision must be a positive integer")
     if uncertainty == 0.0:
-        return rf"{value:.1f} \pm {uncertainty:.1f}"
+        decimal_places = significant_figures if use_decimal_places else 1
+        return rf"{value:.{decimal_places}f} \pm {uncertainty:.{decimal_places}f}"
 
-    exponent = math.floor(math.log10(uncertainty))
-    decimal_places = 1 - exponent
+    decimal_places = (
+        significant_figures
+        if use_decimal_places
+        else significant_figures - 1 - math.floor(math.log10(uncertainty))
+    )
     rounded_value = round(value, decimal_places)
     rounded_uncertainty = round(uncertainty, decimal_places)
     displayed_places = max(decimal_places, 0)
@@ -108,7 +169,12 @@ def format_value_uncertainty(value: float, uncertainty: float) -> str:
     )
 
 
-def render_log_bayes_table(comparisons: Sequence[BayesFactor] = ()) -> str:
+def render_log_bayes_table(
+    comparisons: Sequence[BayesFactor] = (),
+    *,
+    significant_figures: int = 2,
+    use_decimal_places: bool = False,
+) -> str:
     """Render a booktabs table ordered by descending log Bayes factor."""
     lines = [
         r"\begin{tabular}{@{}lr@{}}",
@@ -121,10 +187,10 @@ def render_log_bayes_table(comparisons: Sequence[BayesFactor] = ()) -> str:
         (
             comparison.value,
             rf"{comparison.label}$^{{{comparison.flag}}}$ & "
-            rf"${format_value_uncertainty(comparison.value, comparison.uncertainty)}$ \\"
+            rf"${format_value_uncertainty(comparison.value, comparison.uncertainty, significant_figures, use_decimal_places=use_decimal_places)}$ \\"
             if comparison.flag
             else rf"{comparison.label} & "
-            rf"${format_value_uncertainty(comparison.value, comparison.uncertainty)}$ \\",
+            rf"${format_value_uncertainty(comparison.value, comparison.uncertainty, significant_figures, use_decimal_places=use_decimal_places)}$ \\",
         )
         for comparison in comparisons
     )

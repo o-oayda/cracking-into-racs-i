@@ -309,7 +309,7 @@ def main():
     ax.axvspan(22, 25, color=DRY_SAGE, alpha=0.3)
     plt.xlabel(r'PAF temperature ($^\circ$C)')
     plt.ylabel(r'Mean flux ratio (RACS / NVSS)')
-    plt.xlim(22.5, None)
+    plt.xlim(22.5, 35)
     plt.legend()
     plt.savefig('output/figx-racs-nvss-temp.pdf', bbox_inches='tight')
 
