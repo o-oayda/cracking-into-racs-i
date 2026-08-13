@@ -1,105 +1,81 @@
 artifacts:
-  racs_mid1_example:
-    path: artifacts/cache/racs_mid1_example.d2229a3dc7c0a75a23ed5c9cf2f9fbb1e590f7812263d69bc77ccd7c74df5c91.analysis.zip
-    sha256: d2229a3dc7c0a75a23ed5c9cf2f9fbb1e590f7812263d69bc77ccd7c74df5c91
-    experiment_id: racs_mid1_example
-    format_version: 1
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: d0e30c438eee92defd293d4846c144e064da83ec
-    require_clean: false
-  racs_low3_fiducial:
-    path: artifacts/cache/racs_low3_fiducial.321f4fa7b9bffb3153fcaa8d7e058143cd45ecf2b8f5cf6fb159914e2d32c211.analysis.zip
-    sha256: 321f4fa7b9bffb3153fcaa8d7e058143cd45ecf2b8f5cf6fb159914e2d32c211
-    experiment_id: racs_low3_fiducial
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: 6ec5b8c4518ef47a07008a7f9d3168f62d531225
-    require_clean: false
-  racs_low3_surj:
-    path: artifacts/cache/racs_low3_surj.f8f20b87e114652210411e65fb00f3a68b72f38e9899bccb2f13c3174c3a347d.analysis.zip
-    sha256: f8f20b87e114652210411e65fb00f3a68b72f38e9899bccb2f13c3174c3a347d
-    experiment_id: racs_low3_surj
-    format_version: 2
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: 486eebdc5dd498525dea3e4993671d37f0de4792
-    require_clean: false
-  racs_mid1_surj:
-    path: artifacts/cache/racs_mid1_surj.d27f31d1960994f209cd48f0d31213dd37d18ae78db2614840162f7132d982cc.analysis.zip
-    sha256: d27f31d1960994f209cd48f0d31213dd37d18ae78db2614840162f7132d982cc
-    experiment_id: racs_mid1_surj
-    format_version: 2
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: 3e13dba0c38e6539ebb8d1d2287aef6c399dd588
-    require_clean: false
-  racs_mid1_fiducial:
-    path: artifacts/cache/racs_mid1_fiducial.7d69d98deed5ee44a74c7bfd7758b1dabb525a74be36d3ea886a530c9aeacff4.analysis.zip
-    sha256: 7d69d98deed5ee44a74c7bfd7758b1dabb525a74be36d3ea886a530c9aeacff4
-    experiment_id: racs_mid1_fiducial
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: 6ec5b8c4518ef47a07008a7f9d3168f62d531225
-    require_clean: false
-  racs_low3_cmbdir:
-    path: artifacts/cache/racs_low3_cmbdir.09258c278524cc743ce6980b243dd5e4df484beffd3f59dcb9a3ad6f5c5cbe04.analysis.zip
-    sha256: 09258c278524cc743ce6980b243dd5e4df484beffd3f59dcb9a3ad6f5c5cbe04
-    experiment_id: racs_low3_cmbdir
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: ba15bbfca563531aa8e1f7446a3249fc9fe23f9a
-    require_clean: false
-  racs_mid1_cmbdir:
-    path: artifacts/cache/racs_mid1_cmbdir.60b088ac45a1244cb66fd5affeb91502e3d03f540200ed38a9df595fe891ff79.analysis.zip
-    sha256: 60b088ac45a1244cb66fd5affeb91502e3d03f540200ed38a9df595fe891ff79
-    experiment_id: racs_mid1_cmbdir
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: ba15bbfca563531aa8e1f7446a3249fc9fe23f9a
-    require_clean: false
-  racs_mid1_notemp:
-    path: artifacts/cache/racs_mid1_notemp.d64e2502ed5958187c52343decea01233ca14e9040fb03ed47d9e4b21a3e47e9.analysis.zip
-    sha256: d64e2502ed5958187c52343decea01233ca14e9040fb03ed47d9e4b21a3e47e9
-    experiment_id: racs_mid1_notemp
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: ba15bbfca563531aa8e1f7446a3249fc9fe23f9a
-    require_clean: false
-  racs_low3_notemp:
-    path: artifacts/cache/racs_low3_notemp.e13a90960b785d01339d9ea8149d9d511f8e385cda32d6c3866c30b039a2a4a0.analysis.zip
-    sha256: e13a90960b785d01339d9ea8149d9d511f8e385cda32d6c3866c30b039a2a4a0
-    experiment_id: racs_low3_notemp
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: ba15bbfca563531aa8e1f7446a3249fc9fe23f9a
-    require_clean: false
-  racs_low3_noclus:
-    path: artifacts/cache/racs_low3_noclus.1f260bb2e93b0f363e3cc6b792cb692dc29d726d8acecf77157f07ea30c476a4.analysis.zip
-    sha256: 1f260bb2e93b0f363e3cc6b792cb692dc29d726d8acecf77157f07ea30c476a4
-    experiment_id: racs_low3_noclus
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: 1c426a4f9ce854e6d1cfe2e5b7b10b5ca96fd7c5
-    require_clean: false
-  racs_mid1_noclus:
-    path: artifacts/cache/racs_mid1_noclus.cdc9f16a692c8e766d5fc1f1bf2405d1c1b7882646179c6d876282de6da58ac0.analysis.zip
-    sha256: cdc9f16a692c8e766d5fc1f1bf2405d1c1b7882646179c6d876282de6da58ac0
-    experiment_id: racs_mid1_noclus
-    format_version: 3
-    source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: 1c426a4f9ce854e6d1cfe2e5b7b10b5ca96fd7c5
-    require_clean: false
   racs_low3_cmbdip:
-    path: artifacts/cache/racs_low3_cmbdip.a7ae8bbed531f59c37dbe66d54cc8db34745be3c58fac38d2d0695c11ba57720.analysis.zip
-    sha256: a7ae8bbed531f59c37dbe66d54cc8db34745be3c58fac38d2d0695c11ba57720
+    path: artifacts/cache/racs_low3_cmbdip.6899f2b47c10bcdaed30558e292bb30b5d446c22dfd0dfdf069bd877e6708550.analysis.zip
+    sha256: 6899f2b47c10bcdaed30558e292bb30b5d446c22dfd0dfdf069bd877e6708550
     experiment_id: racs_low3_cmbdip
     format_version: 3
     source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: eeca395d51e2a95e2f08c89d543ed2ca31e7e8f8
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_low3_cmbdir:
+    path: artifacts/cache/racs_low3_cmbdir.4a52ace569c7dc135c90a1e1caff71f9c73a41993566d790aae3165c8e732d13.analysis.zip
+    sha256: 4a52ace569c7dc135c90a1e1caff71f9c73a41993566d790aae3165c8e732d13
+    experiment_id: racs_low3_cmbdir
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_low3_fiducial:
+    path: artifacts/cache/racs_low3_fiducial.e3fd791ad0d859236d65983af841e93e8a7722f6243fc4d4a6e6bcbc7db9545f.analysis.zip
+    sha256: e3fd791ad0d859236d65983af841e93e8a7722f6243fc4d4a6e6bcbc7db9545f
+    experiment_id: racs_low3_fiducial
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_low3_noclus:
+    path: artifacts/cache/racs_low3_noclus.21c038ef10df93ffa4debf6428ee8411f6ace7b6912a2d293bccaff91547cc22.analysis.zip
+    sha256: 21c038ef10df93ffa4debf6428ee8411f6ace7b6912a2d293bccaff91547cc22
+    experiment_id: racs_low3_noclus
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_low3_notemp:
+    path: artifacts/cache/racs_low3_notemp.1125f41fb4de1e3941991a23410b539bdbc6165a4fe68c42502758de7d647827.analysis.zip
+    sha256: 1125f41fb4de1e3941991a23410b539bdbc6165a4fe68c42502758de7d647827
+    experiment_id: racs_low3_notemp
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
     require_clean: false
   racs_mid1_cmbdip:
-    path: artifacts/cache/racs_mid1_cmbdip.c4ec996d05e56c5914fd8d095956d30a103a6f7c744a6e3a16c6b6b51e749173.analysis.zip
-    sha256: c4ec996d05e56c5914fd8d095956d30a103a6f7c744a6e3a16c6b6b51e749173
+    path: artifacts/cache/racs_mid1_cmbdip.f98f26ec8edf333edd6cea82b5dee64b4ed9f116db9c02d2cac3edb984435265.analysis.zip
+    sha256: f98f26ec8edf333edd6cea82b5dee64b4ed9f116db9c02d2cac3edb984435265
     experiment_id: racs_mid1_cmbdip
     format_version: 3
     source_repository: https://github.com/o-oayda/sbi.git
-    source_commit: eeca395d51e2a95e2f08c89d543ed2ca31e7e8f8
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_mid1_cmbdir:
+    path: artifacts/cache/racs_mid1_cmbdir.9ff6e40c3cf612a4fdd7382958d51f4a4dfae32643ced5b8d1605bb070b32a53.analysis.zip
+    sha256: 9ff6e40c3cf612a4fdd7382958d51f4a4dfae32643ced5b8d1605bb070b32a53
+    experiment_id: racs_mid1_cmbdir
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_mid1_fiducial:
+    path: artifacts/cache/racs_mid1_fiducial.c29553983445ffdd0d882213d19d320b73708679c9e3ee777afefae94792decb.analysis.zip
+    sha256: c29553983445ffdd0d882213d19d320b73708679c9e3ee777afefae94792decb
+    experiment_id: racs_mid1_fiducial
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_mid1_noclus:
+    path: artifacts/cache/racs_mid1_noclus.fdefb3705ede0ac9ba13cbe01595ba5f491b85e938410ee838fa411fdbfbb7f7.analysis.zip
+    sha256: fdefb3705ede0ac9ba13cbe01595ba5f491b85e938410ee838fa411fdbfbb7f7
+    experiment_id: racs_mid1_noclus
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
+    require_clean: false
+  racs_mid1_notemp:
+    path: artifacts/cache/racs_mid1_notemp.469e067d08f42ae6e73ab4fdc4a768196fae7a0de5d8ef1165a4082ec5a10c85.analysis.zip
+    sha256: 469e067d08f42ae6e73ab4fdc4a768196fae7a0de5d8ef1165a4082ec5a10c85
+    experiment_id: racs_mid1_notemp
+    format_version: 3
+    source_repository: https://github.com/o-oayda/sbi.git
+    source_commit: 6ba663a6364914bb8f101aed89901d6dfadcfd4e
     require_clean: false

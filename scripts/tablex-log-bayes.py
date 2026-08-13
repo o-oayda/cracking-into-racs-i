@@ -12,6 +12,7 @@ from ciri.bayes_factors import (
     comparison_log_bayes_factor,
     render_log_bayes_table,
     summarize_log_evidence,
+    write_log_bayes_json,
 )
 
 
@@ -72,6 +73,13 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("output/tablex-log-bayes-low3.tex"),
     )
+    parser.add_argument("--json-output", type=Path)
+    parser.add_argument(
+        "--comparison-key",
+        action="append",
+        metavar="KEY",
+        help="Stable JSON key for each --comparison, in the same order.",
+    )
     parser.add_argument(
         "--comparison",
         action="append",
@@ -85,6 +93,12 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     try:
         args.comparisons = validate_comparisons(args.comparison)
+        keys = tuple(args.comparison_key or ())
+        if keys and len(keys) != len(args.comparisons):
+            raise ValueError("Supply exactly one --comparison-key per --comparison")
+        if len(set(keys)) != len(keys) or any(not key.strip() for key in keys):
+            raise ValueError("Comparison keys must be unique and nonblank")
+        args.comparison_keys = keys
     except ValueError as exc:
         parser.error(str(exc))
     return args
@@ -133,6 +147,15 @@ def main() -> None:
     ):
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(render_log_bayes_table(rows), encoding="utf-8")
+
+    if args.json_output is not None:
+        if not args.comparison_keys:
+            raise ValueError("--json-output requires one --comparison-key per --comparison")
+        write_log_bayes_json(
+            args.json_output,
+            mid1=dict(zip(args.comparison_keys, mid1_rows, strict=True)),
+            low3=dict(zip(args.comparison_keys, low3_rows, strict=True)),
+        )
 
 
 if __name__ == "__main__":

@@ -912,6 +912,23 @@ def posterior_legend_patch(label: str, color: str) -> PathPatch:
     )
 
 
+def posterior_outline_legend_patch(
+    label: str,
+    color: str,
+    *,
+    linestyle: str = "--",
+) -> PathPatch:
+    """Create an unfilled line-style swatch for a contour-only posterior."""
+    return PathPatch(
+        MplPath.unit_rectangle(),
+        facecolor="none",
+        edgecolor=to_rgba(color, alpha=1.0),
+        linestyle=linestyle,
+        linewidth=1.3,
+        label=label,
+    )
+
+
 def normalize_quadrants(quadrants: Sequence[int] | None) -> tuple[int, ...] | None:
     """Validate and canonicalize Mollweide quadrant numbers."""
     if quadrants is None:
@@ -1130,9 +1147,15 @@ def draw_mollweide_posterior(
     *,
     color: str,
     draw_mesh: bool,
+    draw_fills: bool = True,
+    contour_linestyle: str = "-",
     rasterize_mesh: bool = False,
 ):
-    """Faithfully draw DipoleSBI's full-sky mesh, HPD fills, and boundaries."""
+    """Draw a posterior's mesh, HPD fills, and contour boundaries.
+
+    Set ``draw_fills=False`` with a non-solid ``contour_linestyle`` to overlay
+    a comparison posterior as contours only.
+    """
     longitude = np.asarray(x_grid, dtype=np.float64)
     latitude = np.asarray(y_grid, dtype=np.float64)
     density = np.asarray(projected_probability, dtype=np.float64)
@@ -1171,17 +1194,18 @@ def draw_mollweide_posterior(
     filled_contours = []
     contours = []
     for longitude_slice in longitude_slices:
-        filled_contours.append(
-            ax.contourf(
-                x_mesh[:, longitude_slice],
-                y_mesh[:, longitude_slice],
-                density[:, longitude_slice],
-                levels=contour_levels,
-                cmap=posterior_density_colormap(color),
-                zorder=1,
-                extend="both",
+        if draw_fills:
+            filled_contours.append(
+                ax.contourf(
+                    x_mesh[:, longitude_slice],
+                    y_mesh[:, longitude_slice],
+                    density[:, longitude_slice],
+                    levels=contour_levels,
+                    cmap=posterior_density_colormap(color),
+                    zorder=1,
+                    extend="both",
+                )
             )
-        )
         contours.append(
             ax.contour(
                 x_mesh[:, longitude_slice],
@@ -1189,6 +1213,7 @@ def draw_mollweide_posterior(
                 density[:, longitude_slice],
                 levels=contour_levels,
                 colors=[color],
+                linestyles=contour_linestyle,
                 zorder=1,
                 extend="both",
             )

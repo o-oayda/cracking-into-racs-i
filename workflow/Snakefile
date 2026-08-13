@@ -11,6 +11,8 @@ NOISEMAP_PATH = '../../catalogue_data/racs/noisemaps'
 
 LOW3_ID = 'racs_low3_fiducial'
 MID1_ID = 'racs_mid1_fiducial'
+LOW3_NOTEMP_ID = 'racs_low3_notemp'
+MID1_NOTEMP_ID = 'racs_mid1_notemp'
 
 # Add future models here as {"label": trusted LaTeX, "mid1_id": artifact key,
 # "low3_id": artifact key, "flag": optional trusted LaTeX}. The rule inputs
@@ -33,7 +35,7 @@ LOG_BAYES_COMPARISONS = [
     "flag": r"\dag",
   },
   {
-    "label": "CMB dipole; temperature response; no clustering",
+    "label": "CMB dipole; temperature response; clustering",
     "mid1_id": "racs_mid1_cmbdip",
     "low3_id": "racs_low3_cmbdip"
   },
@@ -95,6 +97,25 @@ def log_bayes_comparison_args():
   )
 
 
+def log_bayes_comparison_key_args():
+  return " ".join(
+    shlex.join(("--comparison-key", comparison["mid1_id"].removeprefix("racs_mid1_")))
+    for comparison in LOG_BAYES_COMPARISONS
+  )
+
+
+def marginal_artifact_args():
+  return " ".join(
+    shlex.join((
+      "--artifact",
+      artifact_id.split("_")[1],
+      artifact_id.split("_", 2)[2],
+      artifact["path"],
+    ))
+    for artifact_id, artifact in ANALYSIS_ARTIFACTS.items()
+  )
+
+
 def analysis_artifact_path(wildcards):
   artifact = ANALYSIS_ARTIFACTS[wildcards.artifact_name]
   if wildcards.sha256 != artifact["sha256"]:
@@ -121,6 +142,8 @@ rule all:
     tables = [
       'output/tablex-log-bayes-mid1.tex',
       'output/tablex-log-bayes-low3.tex',
+      'output/log-bayes.json',
+      'output/marginals.json',
     ]
 
 
@@ -265,10 +288,12 @@ rule log_bayes_tables:
     comparison_reports=log_bayes_comparison_reports()
   params:
     discard_rounds=LOG_BAYES_DISCARD_ROUNDS,
-    comparison_args=log_bayes_comparison_args()
+    comparison_args=log_bayes_comparison_args(),
+    comparison_key_args=log_bayes_comparison_key_args()
   output:
     mid1='output/tablex-log-bayes-mid1.tex',
-    low3='output/tablex-log-bayes-low3.tex'
+    low3='output/tablex-log-bayes-low3.tex',
+    json='output/log-bayes.json'
   log:
     'log/log-bayes-tables.log'
   shell:
@@ -279,7 +304,29 @@ rule log_bayes_tables:
       --discard-rounds {params.discard_rounds:q} \
       --mid1-output {output.mid1:q} \
       --low3-output {output.low3:q} \
+      --json-output {output.json:q} \
       {params.comparison_args} \
+      {params.comparison_key_args} \
+      > {log:q} 2>&1
+    """
+
+rule marginal_json:
+  input:
+    artifacts=[artifact["path"] for artifact in ANALYSIS_ARTIFACTS.values()],
+    reports=list(ANALYSIS_VERIFICATION_REPORTS.values())
+  params:
+    artifact_args=marginal_artifact_args(),
+    coordinates='equatorial'
+  output:
+    'output/marginals.json'
+  log:
+    'log/marginals-json.log'
+  shell:
+    """
+    python scripts/export-marginals.py \
+      {params.artifact_args} \
+      --coordinates {params.coordinates:q} \
+      --output {output:q} \
       > {log:q} 2>&1
     """
 
@@ -288,7 +335,11 @@ rule skymap:
     mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
     mid1_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID],
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
-    low3_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID]
+    low3_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_ID],
+    mid1_notemp_artifact=ANALYSIS_ARTIFACTS[MID1_NOTEMP_ID]["path"],
+    mid1_notemp_report=ANALYSIS_VERIFICATION_REPORTS[MID1_NOTEMP_ID],
+    low3_notemp_artifact=ANALYSIS_ARTIFACTS[LOW3_NOTEMP_ID]["path"],
+    low3_notemp_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_NOTEMP_ID]
   params:
     coordinates='equatorial',
     quadrants=[1,3],
@@ -304,6 +355,9 @@ rule skymap:
     python scripts/figx-skymap.py \
       --mid1-artifact {input.mid1_artifact:q} \
       --low3-artifact {input.low3_artifact:q} \
+      --mid1-notemp-artifact {input.mid1_notemp_artifact:q} \
+      --low3-notemp-artifact {input.low3_notemp_artifact:q} \
+      --plot-notemp \
       --coordinates {params.coordinates:q} \
       --quadrants {params.quadrants:q} \
       --remove-longitude-ticks {params.remove_longitude_ticks:q} \

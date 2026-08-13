@@ -102,3 +102,74 @@ def prepare_corner_samples(
     matrix[:, longitude_index] = longitude
     matrix[:, latitude_index] = latitude
     return matrix, weights
+
+
+def prepare_marginal_samples(
+    posterior: WeightedPosterior,
+    output_frame: SkyFrame,
+) -> tuple[tuple[tuple[str, str], ...], NDArray[np.float64], NDArray[np.float64]]:
+    """Return the available physical posterior parameters for marginal summaries.
+
+    Comparison models fix some fiducial parameters, so absent parameters are
+    intentionally omitted rather than represented by artificial uncertainties.
+    """
+    parameters = []
+    columns = []
+    for name, label in corner_parameters(output_frame):
+        try:
+            column = np.asarray(posterior[name], dtype=np.float64)
+        except KeyError:
+            continue
+        parameters.append((name, label))
+        columns.append(column)
+    if not columns:
+        raise ValueError("Posterior contains none of the supported parameters")
+
+    matrix = np.column_stack(columns)
+    weights = np.asarray(posterior.get_weights(), dtype=np.float64)
+    if matrix.ndim != 2 or weights.ndim != 1 or matrix.shape[0] != weights.size:
+        raise ValueError("Posterior columns and weights must have equal row counts")
+
+    valid = np.all(np.isfinite(matrix), axis=1) & np.isfinite(weights) & (weights > 0.0)
+    names = [name for name, _ in parameters]
+    if "dipole_latitude" in names:
+        latitude = matrix[:, names.index("dipole_latitude")]
+        valid &= (latitude >= -90.0) & (latitude <= 90.0)
+    matrix = matrix[valid].copy()
+    weights = weights[valid].copy()
+    if matrix.size == 0:
+        raise ValueError("Posterior contains no finite samples with positive weight")
+
+    if "dipole_longitude" in names:
+        longitude_index = names.index("dipole_longitude")
+        latitude_index = names.index("dipole_latitude")
+        longitude, latitude = convert_galactic_directions(
+            matrix[:, longitude_index], matrix[:, latitude_index], output_frame
+        )
+        matrix[:, longitude_index] = np.mod(longitude, 360.0)
+        matrix[:, latitude_index] = latitude
+    return tuple(parameters), matrix, weights
+
+
+def weighted_quantiles(
+    values: ArrayLike,
+    weights: ArrayLike,
+    quantiles: ArrayLike,
+) -> NDArray[np.float64]:
+    """Compute the weighted quantiles used in the corner marginal titles."""
+    data = np.asarray(values, dtype=np.float64)
+    sample_weights = np.asarray(weights, dtype=np.float64).reshape(-1)
+    qs = np.asarray(quantiles, dtype=np.float64)
+    if data.ndim != 1 or sample_weights.size != data.size:
+        raise ValueError("Values and weights must be equally sized vectors")
+    mask = np.isfinite(data) & np.isfinite(sample_weights) & (sample_weights > 0.0)
+    if not np.any(mask):
+        raise ValueError("Weighted quantiles require at least one positive finite weight")
+    data = data[mask]
+    sample_weights = sample_weights[mask]
+    sorter = np.argsort(data)
+    data = data[sorter]
+    sample_weights = sample_weights[sorter]
+    cumulative = np.cumsum(sample_weights) - 0.5 * sample_weights
+    cumulative /= cumulative[-1] + 0.5 * sample_weights[-1]
+    return np.interp(qs, cumulative, data, left=data[0], right=data[-1])

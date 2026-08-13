@@ -25,6 +25,7 @@ from ciri.skymap import (
     normalize_quadrants,
     parse_additional_points,
     place_skymap_legend,
+    posterior_outline_legend_patch,
     posterior_legend_patch,
     posterior_probability_map,
     project_healpix_mollweide,
@@ -35,6 +36,10 @@ configure_plot_style()
 POSTERIORS = (
     ("RACS-low3", MUTED_TEAL_DARK),
     ("RACS-mid1", ROSEWOOD),
+)
+NOTEMP_POSTERIORS = (
+    ("No temp.", MUTED_TEAL_DARK, "--"),
+    ("No temp.", ROSEWOOD, ":"),
 )
 SIGMAS = (1.0, 2.0)
 
@@ -50,6 +55,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--low3-artifact", type=Path, required=True)
     parser.add_argument("--mid1-artifact", type=Path, required=True)
+    parser.add_argument("--low3-notemp-artifact", type=Path)
+    parser.add_argument("--mid1-notemp-artifact", type=Path)
+    parser.add_argument(
+        "--plot-notemp",
+        action="store_true",
+        help=(
+            "Overlay no-temperature-response posterior contours. Requires "
+            "--low3-notemp-artifact and --mid1-notemp-artifact."
+        ),
+    )
     parser.add_argument(
         "--coordinates",
         choices=("galactic", "equatorial"),
@@ -118,6 +133,13 @@ def parse_args() -> argparse.Namespace:
         args.points = parse_additional_points(args.point)
     except ValueError as exc:
         parser.error(str(exc))
+    if args.plot_notemp and (
+        args.low3_notemp_artifact is None or args.mid1_notemp_artifact is None
+    ):
+        parser.error(
+            "--plot-notemp requires --low3-notemp-artifact and "
+            "--mid1-notemp-artifact"
+        )
     return args
 
 
@@ -164,6 +186,39 @@ def main() -> None:
             draw_mesh=posterior_index == 0,
         )
 
+    if args.plot_notemp:
+        notemp_artifact_paths = (
+            args.low3_notemp_artifact,
+            args.mid1_notemp_artifact,
+        )
+        for artifact, (label, color, linestyle) in zip(
+            notemp_artifact_paths,
+            NOTEMP_POSTERIORS,
+            strict=True,
+        ):
+            probability = posterior_probability_map(
+                artifact,
+                label=label,
+                output_frame=output_frame,
+                nside=args.nside,
+                smoothing_sigma=args.smoothing_sigma,
+            )
+            x_grid, y_grid, projected_probability = project_healpix_mollweide(
+                probability
+            )
+            thresholds = compute_2d_contours(projected_probability, SIGMAS)
+            draw_mollweide_posterior(
+                ax,
+                x_grid,
+                y_grid,
+                projected_probability,
+                thresholds,
+                color=color,
+                draw_mesh=False,
+                draw_fills=False,
+                contour_linestyle=linestyle,
+            )
+
     # Draw before quadrant setup so the same compound path clips the star.
     draw_cmb_dipole_marker(ax, output_frame)
     draw_additional_points(ax, args.points, output_frame)
@@ -177,7 +232,13 @@ def main() -> None:
     legend_handles = [
         posterior_legend_patch(label, color)
         for label, color in POSTERIORS
-    ] + [cmb_legend_handle(), *additional_point_legend_handles(args.points)]
+    ]
+    if args.plot_notemp:
+        legend_handles.extend(
+            posterior_outline_legend_patch(label, color, linestyle=linestyle)
+            for label, color, linestyle in NOTEMP_POSTERIORS
+        )
+    legend_handles += [cmb_legend_handle(), *additional_point_legend_handles(args.points)]
     legend = place_skymap_legend(ax, legend_handles, selected_axes_bounds)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     output_bbox = "tight"

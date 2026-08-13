@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import math
 from pathlib import Path
 from typing import Sequence
@@ -132,3 +133,30 @@ def render_log_bayes_table(comparisons: Sequence[BayesFactor] = ()) -> str:
     )
     lines.extend((r"\bottomrule", r"\end{tabular}"))
     return "\n".join(lines) + "\n"
+
+
+def write_log_bayes_json(
+    output: Path,
+    *,
+    mid1: dict[str, BayesFactor],
+    low3: dict[str, BayesFactor],
+) -> None:
+    """Write machine-readable log Bayes factors indexed by dataset and model."""
+    payload = {
+        "low3": {
+            "fiducial": {"ln_b": 0.0, "uncertainty": 0.0},
+            **{
+                key: {"ln_b": factor.value, "uncertainty": factor.uncertainty}
+                for key, factor in low3.items()
+            },
+        },
+        "mid1": {
+            "fiducial": {"ln_b": 0.0, "uncertainty": 0.0},
+            **{
+                key: {"ln_b": factor.value, "uncertainty": factor.uncertainty}
+                for key, factor in mid1.items()
+            },
+        },
+    }
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
