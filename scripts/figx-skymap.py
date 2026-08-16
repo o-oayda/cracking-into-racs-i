@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -20,6 +21,7 @@ from ciri.skymap import (
     draw_cmb_dipole_marker,
     draw_additional_points,
     layout_mollweide_quadrants,
+    normalize_annotated_longitude_tick,
     normalize_latitude_tick_removals,
     normalize_longitude_tick_removals,
     normalize_quadrants,
@@ -106,6 +108,15 @@ def parse_args() -> argparse.Namespace:
         help="Hide one or more latitude tick labels.",
     )
     parser.add_argument(
+        "--annotated-longitude-tick",
+        type=float,
+        metavar="DEGREES",
+        help=(
+            "Longitude tick that carries the frame annotation, such as "
+            "'RA = 240 degrees'. Overrides automatic placement."
+        ),
+    )
+    parser.add_argument(
         "--point",
         action="append",
         nargs=4,
@@ -114,6 +125,16 @@ def parse_args() -> argparse.Namespace:
             "Overlay a labelled direction whose FRAME is exactly galactic or "
             "equatorial; repeat for multiple points and quote labels containing "
             "spaces."
+        ),
+    )
+    parser.add_argument(
+        "--rot",
+        nargs=2,
+        type=float,
+        metavar=("LONGITUDE_DEG", "LATITUDE_DEG"),
+        help=(
+            "Healpy projection center in the output coordinate frame. Only "
+            "longitude rotations are supported, so LATITUDE_DEG must be 0."
         ),
     )
     parser.add_argument(
@@ -131,6 +152,22 @@ def parse_args() -> argparse.Namespace:
             args.remove_latitude_ticks
         )
         args.points = parse_additional_points(args.point)
+        if args.rot is not None:
+            longitude, latitude = args.rot
+            if not math.isfinite(longitude) or not math.isfinite(latitude):
+                raise ValueError("Rotation longitude and latitude must be finite")
+            if latitude != 0.0:
+                raise ValueError(
+                    "Only longitude rotations are supported; "
+                    "rotation latitude must be 0"
+                )
+            args.rot = (longitude, latitude)
+        args.annotated_longitude_tick = normalize_annotated_longitude_tick(
+            args.annotated_longitude_tick,
+            rot=args.rot,
+            quadrants=args.quadrants,
+            remove_longitude_ticks=args.remove_longitude_ticks,
+        )
     except ValueError as exc:
         parser.error(str(exc))
     if args.plot_notemp and (
@@ -156,6 +193,8 @@ def main() -> None:
         ax,
         output_frame,
         args.quadrants,
+        rot=args.rot,
+        annotated_longitude_tick=args.annotated_longitude_tick,
         remove_longitude_ticks=args.remove_longitude_ticks,
         remove_latitude_ticks=args.remove_latitude_ticks,
     )
@@ -171,7 +210,10 @@ def main() -> None:
             nside=args.nside,
             smoothing_sigma=args.smoothing_sigma,
         )
-        x_grid, y_grid, projected_probability = project_healpix_mollweide(probability)
+        x_grid, y_grid, projected_probability = project_healpix_mollweide(
+            probability,
+            rot=args.rot,
+        )
         thresholds = compute_2d_contours(projected_probability, SIGMAS)
 
         draw_mollweide_posterior(
@@ -204,7 +246,7 @@ def main() -> None:
                 smoothing_sigma=args.smoothing_sigma,
             )
             x_grid, y_grid, projected_probability = project_healpix_mollweide(
-                probability
+                probability, rot=args.rot
             )
             thresholds = compute_2d_contours(projected_probability, SIGMAS)
             draw_mollweide_posterior(
@@ -220,8 +262,8 @@ def main() -> None:
             )
 
     # Draw before quadrant setup so the same compound path clips the star.
-    draw_cmb_dipole_marker(ax, output_frame)
-    draw_additional_points(ax, args.points, output_frame)
+    draw_cmb_dipole_marker(ax, output_frame, rot=args.rot)
+    draw_additional_points(ax, args.points, output_frame, rot=args.rot)
 
     clip_patch = None
     selected_axes_bounds = None

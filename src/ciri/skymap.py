@@ -31,6 +31,7 @@ from ciri.constants import CMB_DIPOLE_EQUATORIAL_DEG, CMB_DIPOLE_GALACTIC_DEG
 
 
 SkyFrame = Literal["galactic", "equatorial"]
+SkyRotation = tuple[float, float]
 
 
 class WeightedSamples(Protocol):
@@ -224,6 +225,8 @@ def additional_point_direction(
 def astronomical_mollweide_coordinates(
     longitude_deg: ArrayLike,
     latitude_deg: ArrayLike,
+    *,
+    rot: SkyRotation | None = None,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """Project sky degrees to Matplotlib's astronomical Mollweide convention.
 
@@ -240,6 +243,14 @@ def astronomical_mollweide_coordinates(
     if np.any((latitude < -90.0) | (latitude > 90.0)):
         raise ValueError("Latitude must lie between -90 and 90 degrees")
 
+    if rot is not None:
+        rotation = hp.Rotator(rot=rot, inv=True)
+        theta = np.deg2rad(90.0 - latitude)
+        phi = np.deg2rad(longitude)
+        theta, phi = rotation.I(theta, phi)
+        longitude = np.rad2deg(phi)
+        latitude = 90.0 - np.rad2deg(theta)
+
     plot_longitude = np.mod(-longitude + 180.0, 360.0) - 180.0
     return (
         np.asarray(np.deg2rad(plot_longitude), dtype=np.float64),
@@ -247,10 +258,15 @@ def astronomical_mollweide_coordinates(
     )
 
 
-def draw_cmb_dipole_marker(ax: Axes, frame: SkyFrame) -> PathCollection:
+def draw_cmb_dipole_marker(
+    ax: Axes,
+    frame: SkyFrame,
+    *,
+    rot: SkyRotation | None = None,
+) -> PathCollection:
     """Draw the frame-appropriate CMB dipole as DipoleSBI's black star."""
     longitude, latitude = cmb_dipole_direction(frame)
-    x, y = astronomical_mollweide_coordinates(longitude, latitude)
+    x, y = astronomical_mollweide_coordinates(longitude, latitude, rot=rot)
     return ax.scatter(
         float(x),
         float(y),
@@ -309,12 +325,14 @@ def draw_additional_points(
     ax: Axes,
     points: Sequence[SkyPoint],
     output_frame: SkyFrame,
+    *,
+    rot: SkyRotation | None = None,
 ) -> tuple[Line2D, ...]:
     """Draw labelled point inputs after converting to the display frame."""
     artists = []
     for index, point in enumerate(points):
         longitude, latitude = additional_point_direction(point, output_frame)
-        x, y = astronomical_mollweide_coordinates(longitude, latitude)
+        x, y = astronomical_mollweide_coordinates(longitude, latitude, rot=rot)
         artist = _additional_point_line(
             additional_point_marker(index),
             point.label,
@@ -534,6 +552,7 @@ def project_healpix_mollweide(
     probability: ArrayLike,
     *,
     xsize: int = 500,
+    rot: SkyRotation | None = None,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Project and normalize a HEALPix map using Healpy's Mollweide grid.
 
@@ -551,6 +570,7 @@ def project_healpix_mollweide(
         sky_probability,
         return_only_data=True,
         xsize=xsize,
+        rot=rot,
     )
     projected_probability = np.asarray(projected, dtype=np.float64)
     projected_probability = np.nan_to_num(
@@ -719,37 +739,99 @@ def preferred_coordinate_ticks(
     return longitude, latitude
 
 
+def normalize_annotated_longitude_tick(
+    value: float | None,
+    *,
+    rot: SkyRotation | None = None,
+    quadrants: Sequence[int] | None = None,
+    remove_longitude_ticks: Sequence[float] | None = None,
+) -> int | None:
+    """Validate an explicitly selected longitude annotation tick."""
+    if value is None:
+        return None
+    if not np.isfinite(value) or not np.isclose(value, round(value)):
+        raise ValueError(
+            f"Annotated longitude tick must be a whole number of degrees; got {value}"
+        )
+    normalized = int(round(value)) % 360
+    ticks_deg = np.arange(-150, 180, 30)
+    longitude_offset = 0.0 if rot is None else rot[0]
+    sky_longitudes = np.mod(-ticks_deg + longitude_offset, 360.0)
+    matches = np.flatnonzero(np.isclose(sky_longitudes, normalized))
+    if matches.size == 0:
+        available = ", ".join(f"{longitude:g}" for longitude in sky_longitudes)
+        raise ValueError(
+            f"Annotated longitude tick {normalized} degrees is not on the rotated "
+            f"tick grid; available ticks are {available} degrees"
+        )
+
+    tick = int(ticks_deg[int(matches[0])])
+    if tick == 0:
+        raise ValueError(
+            f"Annotated longitude tick {normalized} degrees lies on the hidden "
+            "central meridian"
+        )
+
+    selected = normalize_quadrants(quadrants)
+    selected_set = set(MOLLWEIDE_QUADRANTS if selected is None else selected)
+    visible = bool(selected_set & ({1, 3} if tick < 0 else {2, 4}))
+    if not visible:
+        raise ValueError(
+            f"Annotated longitude tick {normalized} degrees is outside the "
+            "selected Mollweide quadrants"
+        )
+
+    removed = normalize_longitude_tick_removals(remove_longitude_ticks)
+    if normalized in removed:
+        raise ValueError(
+            f"Annotated longitude tick {normalized} degrees is hidden by "
+            "--remove-longitude-ticks"
+        )
+    return normalized
+
+
 def configure_mollweide_axes(
     ax: Axes,
     frame: SkyFrame,
     quadrants: Sequence[int] | None = None,
     *,
+    rot: SkyRotation | None = None,
+    annotated_longitude_tick: float | None = None,
     remove_longitude_ticks: Sequence[float] | None = None,
     remove_latitude_ticks: Sequence[float] | None = None,
 ) -> None:
     """Apply frame-aware ticks and explicit pole-to-pole dotted graticules."""
     ticks_deg = np.arange(-150, 180, 30)
     ax.set_xticks(np.deg2rad(ticks_deg))
-    sky_longitudes = np.mod(-ticks_deg, 360)
+    longitude_offset = 0.0 if rot is None else rot[0]
+    sky_longitudes = np.mod(-ticks_deg + longitude_offset, 360)
     removed_longitude = normalize_longitude_tick_removals(remove_longitude_ticks)
     removed_latitude = normalize_latitude_tick_removals(remove_latitude_ticks)
-    annotated_longitude, annotated_latitude = preferred_coordinate_ticks(
+    fallback_longitude, annotated_latitude = preferred_coordinate_ticks(
         quadrants,
         frame=frame,
         remove_longitude_ticks=removed_longitude,
         remove_latitude_ticks=removed_latitude,
     )
+    annotated_longitude = normalize_annotated_longitude_tick(
+        annotated_longitude_tick,
+        rot=rot,
+        quadrants=quadrants,
+        remove_longitude_ticks=removed_longitude,
+    )
+    if annotated_longitude is None:
+        annotated_longitude = fallback_longitude
     ax.set_xticklabels(
         [
             ""
-            if int(value) in removed_longitude
+            if tick == 0 or int(value) in removed_longitude
             else _coordinate_tick_text(
                 frame,
                 "longitude",
                 int(value),
                 annotated=value == annotated_longitude,
             )
-            for value in sky_longitudes
+            for tick, value in zip(ticks_deg, sky_longitudes, strict=True)
         ]
     )
     latitude_ticks = np.array(MOLLWEIDE_LATITUDE_TICKS, dtype=int)

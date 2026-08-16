@@ -348,10 +348,13 @@ rule skymap:
     low3_notemp_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_NOTEMP_ID]
   params:
     coordinates='equatorial',
-    quadrants=[1,3],
-    remove_longitude_ticks=[150],
+    quadrants=[2,4],
+    rot=[270, 0],
+    annotated_longitude_tick=240,
+    remove_longitude_ticks=[150, 210],
     O26_point=('galactic', 221, 44, 'O26'),
     B25_point=('equatorial', 165, -10.8, 'B25'),
+    O24_point=('galactic', 322, 61, 'O24')
   output:
     'output/figx-skymap.png'
   log:
@@ -366,9 +369,12 @@ rule skymap:
       --plot-notemp \
       --coordinates {params.coordinates:q} \
       --quadrants {params.quadrants:q} \
+      --rot {params.rot:q} \
+      --annotated-longitude-tick {params.annotated_longitude_tick:q} \
       --remove-longitude-ticks {params.remove_longitude_ticks:q} \
       --point {params.O26_point:q} \
       --point {params.B25_point:q} \
+      --point {params.O24_point:q} \
       --output {output:q} \
       > {log:q} 2>&1
     """
