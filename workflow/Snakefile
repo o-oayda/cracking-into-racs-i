@@ -357,7 +357,8 @@ rule skymap:
     remove_longitude_ticks=[240, 90, 150],
     O26_point=('galactic', 221, 44, 'O26'),
     B25_point=('equatorial', 165, -10.8, 'B25'),
-    O24_point=('galactic', 322, 61, 'O24')
+    O24_point=('galactic', 322, 61, 'O24'),
+    position_angle=310
   output:
     'output/figx-skymap.png'
   log:
@@ -371,6 +372,8 @@ rule skymap:
       --low3-notemp-artifact {input.low3_notemp_artifact:q} \
       --plot-notemp \
       --projection {params.projection:q} \
+      --label-contours \
+      --contour-label-position-angle {params.position_angle:q} \
       --coordinates {params.coordinates:q} \
       --legend-columns {params.legend_columns:q} \
       --figsize {params.figsize:q} \

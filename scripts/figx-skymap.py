@@ -9,6 +9,7 @@ from pathlib import Path
 
 from astropy.coordinates import SkyCoord
 import astropy.units as u
+import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -136,6 +137,24 @@ def parse_args() -> argparse.Namespace:
         help="Spherical Gaussian smoothing sigma (default: 0.05 rad).",
     )
     parser.add_argument(
+        "--label-contours",
+        action="store_true",
+        help=(
+            "Label the solid posterior contours with their enclosed "
+            "probability mass (for example, 39% and 86% for 1 and 2 sigma)."
+        ),
+    )
+    parser.add_argument(
+        "--contour-label-position-angle",
+        type=float,
+        metavar="DEGREES",
+        help=(
+            "Place each contour label at this position angle from its "
+            "posterior peak, measured north through east. Requires "
+            "--label-contours; by default Matplotlib chooses the placement."
+        ),
+    )
+    parser.add_argument(
         "--remove-longitude-ticks",
         type=float,
         nargs="+",
@@ -198,6 +217,14 @@ def parse_args() -> argparse.Namespace:
         )
         if args.legend_columns < 1:
             raise ValueError("--legend-columns must be positive")
+        if args.contour_label_position_angle is not None:
+            if not math.isfinite(args.contour_label_position_angle):
+                raise ValueError("Contour label position angle must be finite")
+            if not args.label_contours:
+                raise ValueError(
+                    "--contour-label-position-angle requires --label-contours"
+                )
+            args.contour_label_position_angle %= 360.0
         if args.figsize is not None:
             width, height = args.figsize
             if (
@@ -499,6 +526,108 @@ def draw_ligo_globe_posterior(
     return mesh, fills, contours
 
 
+def label_contours_with_enclosed_probability(
+    ax,
+    contour_sets,
+    thresholds: np.ndarray,
+    sigmas: tuple[float, ...] = SIGMAS,
+    position_angle: float | None = None,
+    center: tuple[float, float] | None = None,
+    center_transform=None,
+    east_sign: float = 1.0,
+    position_step: float = np.deg2rad(0.1),
+) -> tuple:
+    """Place inline credible-mass labels on one or more contour artists.
+
+    ``thresholds`` are paired with ``sigmas`` before Matplotlib sorts contour
+    levels, because a larger enclosed mass corresponds to a lower density
+    threshold.  The labels therefore remain correct for either projection.
+
+    When specified, ``position_angle`` selects a label location relative to
+    ``center`` in the usual astronomical convention: 0 degrees points north
+    and 90 degrees east. The text itself continues to follow the contour.
+    """
+    threshold_values = np.asarray(thresholds, dtype=float)
+    if threshold_values.shape != (len(sigmas),):
+        raise ValueError("Contour thresholds must correspond one-to-one with sigmas")
+    formats = {
+        # The shared plotting style uses LaTeX, where a literal percent sign
+        # starts a comment and would disappear from the rendered label.
+        float(threshold): f"{gaussian_enclosed_probability(sigma):.0%}".replace(
+            "%", r"\%"
+        )
+        for threshold, sigma in zip(threshold_values, sigmas, strict=True)
+    }
+    if position_angle is not None:
+        if not math.isfinite(position_angle):
+            raise ValueError("Contour label position angle must be finite")
+        if center is None or center_transform is None:
+            raise ValueError("Contour label position requires a posterior peak")
+        center_display = np.asarray(center_transform.transform(center), dtype=float)
+        step = position_step
+        north_display = np.asarray(
+            center_transform.transform((center[0], center[1] + step)), dtype=float
+        )
+        east_display = np.asarray(
+            center_transform.transform((center[0] + east_sign * step, center[1])),
+            dtype=float,
+        )
+        north = north_display - center_display
+        east = east_display - center_display
+        north_norm = float(np.linalg.norm(north))
+        east_norm = float(np.linalg.norm(east))
+        if (
+            not np.isfinite(center_display).all()
+            or not math.isfinite(north_norm)
+            or not math.isfinite(east_norm)
+            or north_norm == 0.0
+            or east_norm == 0.0
+        ):
+            raise ValueError("Unable to determine contour-label position angle")
+        north /= north_norm
+        east /= east_norm
+        angle = np.deg2rad(position_angle)
+        target = np.cos(angle) * north + np.sin(angle) * east
+        labels = []
+        for contours in contour_sets:
+            for level, path in zip(
+                contours.levels, contours.get_paths(), strict=True
+            ):
+                display_vertices = contours.get_transform().transform(path.vertices)
+                offsets = display_vertices - center_display
+                distances = np.linalg.norm(offsets, axis=1)
+                valid = np.isfinite(distances) & (distances > 0.0)
+                alignment = np.full(distances.shape, -np.inf)
+                alignment[valid] = offsets[valid] @ target / distances[valid]
+                vertex = display_vertices[int(np.argmax(alignment))]
+                location = ax.transData.inverted().transform(vertex)
+                existing_labels = tuple(getattr(contours, "labelTexts", ()))
+                added_labels = ax.clabel(
+                    contours,
+                    levels=[level],
+                    manual=[location],
+                    inline=True,
+                    inline_spacing=3,
+                    fmt=formats,
+                    fontsize="small",
+                )
+                labels.extend(added_labels[len(existing_labels) :])
+        return tuple(labels)
+
+    labels = []
+    for contours in contour_sets:
+        labels.extend(
+            ax.clabel(
+                contours,
+                inline=True,
+                inline_spacing=3,
+                fmt=formats,
+                fontsize="small",
+            )
+        )
+    return tuple(labels)
+
+
 def draw_ligo_globe_cmb_marker(ax, frame: SkyFrame):
     """Draw the CMB marker in WCS world coordinates."""
     longitude, latitude = cmb_dipole_direction(frame)
@@ -568,7 +697,7 @@ def render_ligo_globe(args, output_frame: SkyFrame) -> None:
             smoothing_sigma=args.smoothing_sigma,
         )
         thresholds = credible_density_thresholds(probability, enclosed)
-        draw_ligo_globe_posterior(
+        _mesh, _fills, contours = draw_ligo_globe_posterior(
             ax,
             probability,
             thresholds,
@@ -578,6 +707,21 @@ def render_ligo_globe(args, output_frame: SkyFrame) -> None:
             # posterior is represented only by discrete HPD fill bands.
             draw_mesh=True,
         )
+        if args.label_contours:
+            peak_longitude, peak_latitude = hp.pix2ang(
+                args.nside,
+                int(np.argmax(probability)),
+                lonlat=True,
+            )
+            label_contours_with_enclosed_probability(
+                ax,
+                (contours,),
+                thresholds,
+                position_angle=args.contour_label_position_angle,
+                center=(float(peak_longitude), float(peak_latitude)),
+                center_transform=ax.get_transform("world"),
+                position_step=0.1,
+            )
 
     if args.plot_notemp:
         notemp_artifact_paths = (
@@ -672,7 +816,7 @@ def main() -> None:
         )
         thresholds = compute_2d_contours(projected_probability, SIGMAS)
 
-        draw_mollweide_posterior(
+        _mesh, _fills, contours = draw_mollweide_posterior(
             ax,
             x_grid,
             y_grid,
@@ -683,6 +827,21 @@ def main() -> None:
             # the continuous probability mesh; every run supplies HPD fills.
             draw_mesh=posterior_index == 0,
         )
+        if args.label_contours:
+            peak_row, peak_column = np.unravel_index(
+                int(np.argmax(projected_probability)),
+                projected_probability.shape,
+            )
+            label_contours_with_enclosed_probability(
+                ax,
+                contours,
+                thresholds,
+                position_angle=args.contour_label_position_angle,
+                center=(float(x_grid[peak_column]), float(y_grid[peak_row])),
+                center_transform=ax.transData,
+                # Mollweide longitudes increase to the left (east).
+                east_sign=-1.0,
+            )
 
     if args.plot_notemp:
         notemp_artifact_paths = (

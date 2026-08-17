@@ -648,6 +648,28 @@ def test_cli_rejects_nonpositive_figsize_dimension():
     assert "--figsize dimensions must be finite and positive" in result.stderr
 
 
+def test_cli_rejects_contour_label_angle_without_contour_labels():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--low3-artifact",
+            "unused-low3.zip",
+            "--mid1-artifact",
+            "unused-mid1.zip",
+            "--contour-label-position-angle",
+            "45",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "--contour-label-position-angle requires --label-contours" in result.stderr
+
+
 @pytest.mark.parametrize(
     ("extra_args", "message"),
     [
@@ -754,6 +776,59 @@ def test_ligo_globe_posterior_uses_direct_ring_map_and_expected_layers():
         assert data is probability
         assert kwargs["nested"] is False
     np.testing.assert_allclose(ax.calls[-1][2]["levels"], [0.3, 0.7])
+
+
+def test_contour_labels_use_the_enclosed_probability_for_each_sigma():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+
+    class FakeAxes:
+        def __init__(self):
+            self.calls = []
+
+        def clabel(self, contours, **kwargs):
+            self.calls.append((contours, kwargs))
+            return [contours]
+
+    ax = FakeAxes()
+    labels = module["label_contours_with_enclosed_probability"](
+        ax,
+        ("western-half", "eastern-half"),
+        np.array([0.7, 0.3]),
+    )
+
+    assert labels == ("western-half", "eastern-half")
+    assert [contours for contours, _kwargs in ax.calls] == [
+        "western-half",
+        "eastern-half",
+    ]
+    for _contours, kwargs in ax.calls:
+        assert kwargs["fmt"] == {0.7: r"39\%", 0.3: r"86\%"}
+        assert kwargs["inline"] is True
+
+
+def test_contour_label_position_angle_places_labels_relative_to_posterior_peak():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+    coordinate = np.linspace(-2.0, 2.0, 101)
+    x, y = np.meshgrid(coordinate, coordinate)
+    density = np.exp(-0.5 * (x**2 + y**2))
+    fig, ax = plt.subplots()
+    try:
+        contours = ax.contour(x, y, density, levels=[0.2, 0.5])
+        labels = module["label_contours_with_enclosed_probability"](
+            ax,
+            (contours,),
+            np.array([0.2, 0.5]),
+            position_angle=0.0,
+            center=(0.0, 0.0),
+            center_transform=ax.transData,
+        )
+
+        assert len(labels) == 2
+        assert all(label.get_position()[1] > 0.0 for label in labels)
+    finally:
+        plt.close(fig)
 
 
 def test_ligo_globe_notemp_posterior_is_outline_only_with_requested_style():
@@ -903,11 +978,21 @@ def test_real_ligo_globe_renders_ring_healpix_contours():
             color="#123456",
             draw_mesh=True,
         )
+        labels = module["label_contours_with_enclosed_probability"](
+            ax,
+            (contours,),
+            thresholds,
+            position_angle=0.0,
+            center=(150.0, -25.0),
+            center_transform=ax.get_transform("world"),
+            position_step=0.1,
+        )
         fig.canvas.draw()
 
         assert mesh is not None
         assert fills is not None
         assert contours is not None
+        assert {label.get_text() for label in labels} == {r"39\%", r"86\%"}
     finally:
         plt.close(fig)
 
