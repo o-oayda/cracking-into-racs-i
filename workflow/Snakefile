@@ -348,10 +348,13 @@ rule skymap:
     low3_notemp_report=ANALYSIS_VERIFICATION_REPORTS[LOW3_NOTEMP_ID]
   params:
     coordinates='equatorial',
-    quadrants=[2,4],
-    rot=[270, 0],
+    projection='globe',
+    legend_columns=4,
+    figsize=[5, 5],
+    # quadrants=None,
+    rot=[165, 20],
     annotated_longitude_tick=240,
-    remove_longitude_ticks=[150, 210],
+    remove_longitude_ticks=[240, 90, 150],
     O26_point=('galactic', 221, 44, 'O26'),
     B25_point=('equatorial', 165, -10.8, 'B25'),
     O24_point=('galactic', 322, 61, 'O24')
@@ -367,10 +370,11 @@ rule skymap:
       --mid1-notemp-artifact {input.mid1_notemp_artifact:q} \
       --low3-notemp-artifact {input.low3_notemp_artifact:q} \
       --plot-notemp \
+      --projection {params.projection:q} \
       --coordinates {params.coordinates:q} \
-      --quadrants {params.quadrants:q} \
+      --legend-columns {params.legend_columns:q} \
+      --figsize {params.figsize:q} \
       --rot {params.rot:q} \
-      --annotated-longitude-tick {params.annotated_longitude_tick:q} \
       --remove-longitude-ticks {params.remove_longitude_ticks:q} \
       --point {params.O26_point:q} \
       --point {params.B25_point:q} \

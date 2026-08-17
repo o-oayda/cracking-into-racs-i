@@ -999,12 +999,13 @@ def posterior_outline_legend_patch(
     color: str,
     *,
     linestyle: str = "--",
+    alpha: float = 1.0,
 ) -> PathPatch:
     """Create an unfilled line-style swatch for a contour-only posterior."""
     return PathPatch(
         MplPath.unit_rectangle(),
         facecolor="none",
-        edgecolor=to_rgba(color, alpha=1.0),
+        edgecolor=to_rgba(color, alpha=alpha),
         linestyle=linestyle,
         linewidth=1.3,
         label=label,
@@ -1231,6 +1232,7 @@ def draw_mollweide_posterior(
     draw_mesh: bool,
     draw_fills: bool = True,
     contour_linestyle: str = "-",
+    contour_alpha: float = 1.0,
     rasterize_mesh: bool = False,
 ):
     """Draw a posterior's mesh, HPD fills, and contour boundaries.
@@ -1296,6 +1298,7 @@ def draw_mollweide_posterior(
                 levels=contour_levels,
                 colors=[color],
                 linestyles=contour_linestyle,
+                alpha=contour_alpha,
                 zorder=1,
                 extend="both",
             )

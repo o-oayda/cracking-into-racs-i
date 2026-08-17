@@ -5,6 +5,7 @@ import runpy
 import subprocess
 import sys
 
+import astropy.units as u
 import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -513,6 +514,9 @@ def test_cli_parses_repeated_points_and_quoted_label(monkeypatch):
     )
     args = module["parse_args"]()
     assert args.coordinates == "equatorial"
+    assert args.projection == "mollweide"
+    assert args.legend_columns == 3
+    assert args.figsize is None
     assert args.points == (
         SkyPoint("galactic", 330.0, 12.0, "Local Group"),
         SkyPoint("equatorial", 40.0, -45.0, "Second"),
@@ -564,6 +568,348 @@ def test_cli_rejects_nonzero_rotation_latitude():
 
     assert result.returncode == 2
     assert "rotation latitude must be 0" in result.stderr
+
+
+def test_cli_globe_accepts_nonzero_rotation_latitude(monkeypatch):
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            str(script),
+            "--low3-artifact",
+            "low3.zip",
+            "--mid1-artifact",
+            "mid1.zip",
+            "--projection",
+            "globe",
+            "--legend-columns",
+            "4",
+            "--figsize",
+            "7",
+            "5",
+            "--rot",
+            "150",
+            "-25",
+        ],
+    )
+
+    args = module["parse_args"]()
+
+    assert args.projection == "globe"
+    assert args.legend_columns == 4
+    assert args.figsize == (7.0, 5.0)
+    assert args.rot == (150.0, -25.0)
+
+
+def test_cli_rejects_nonpositive_legend_columns():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--low3-artifact",
+            "unused-low3.zip",
+            "--mid1-artifact",
+            "unused-mid1.zip",
+            "--legend-columns",
+            "0",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "--legend-columns must be positive" in result.stderr
+
+
+def test_cli_rejects_nonpositive_figsize_dimension():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--low3-artifact",
+            "unused-low3.zip",
+            "--mid1-artifact",
+            "unused-mid1.zip",
+            "--figsize",
+            "0",
+            "6",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "--figsize dimensions must be finite and positive" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("extra_args", "message"),
+    [
+        (["--quadrants", "1"], "--quadrants is only supported"),
+        (
+            ["--annotated-longitude-tick", "30"],
+            "--annotated-longitude-tick is only supported",
+        ),
+    ],
+)
+def test_cli_globe_rejects_mollweide_only_arguments(extra_args, message):
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--low3-artifact",
+            "unused-low3.zip",
+            "--mid1-artifact",
+            "unused-mid1.zip",
+            "--projection",
+            "globe",
+            *extra_args,
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert message in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("frame", "expected"),
+    [
+        ("galactic", "galactic degrees globe"),
+        ("equatorial", "astro degrees globe"),
+    ],
+)
+def test_ligo_globe_projection_uses_degree_longitudes(frame, expected):
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+
+    assert module["ligo_globe_projection"](frame) == expected
+
+
+@pytest.mark.parametrize("frame", ["galactic", "equatorial"])
+def test_ligo_globe_center_preserves_requested_frame_and_degrees(frame):
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+
+    center = module["ligo_globe_center"](frame, (125.0, -35.0))
+
+    if frame == "galactic":
+        assert center.frame.name == "galactic"
+        longitude = center.l.deg
+        latitude = center.b.deg
+    else:
+        assert center.frame.name == "icrs"
+        longitude = center.ra.deg
+        latitude = center.dec.deg
+    assert longitude == pytest.approx(125.0)
+    assert latitude == pytest.approx(-35.0)
+
+
+def test_ligo_globe_posterior_uses_direct_ring_map_and_expected_layers():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+    probability = np.linspace(0.0, 1.0, hp.nside2npix(1))
+
+    class FakeAxes:
+        def __init__(self):
+            self.calls = []
+
+        def imshow_hpx(self, data, **kwargs):
+            self.calls.append(("mesh", data, kwargs))
+            return "mesh"
+
+        def contourf_hpx(self, data, **kwargs):
+            self.calls.append(("fills", data, kwargs))
+            return "fills"
+
+        def contour_hpx(self, data, **kwargs):
+            self.calls.append(("contours", data, kwargs))
+            return "contours"
+
+    ax = FakeAxes()
+    result = module["draw_ligo_globe_posterior"](
+        ax,
+        probability,
+        np.array([0.7, 0.3]),
+        color="#123456",
+        draw_mesh=True,
+    )
+
+    assert result == ("mesh", "fills", "contours")
+    assert [name for name, _data, _kwargs in ax.calls] == [
+        "mesh",
+        "fills",
+        "contours",
+    ]
+    for _name, data, kwargs in ax.calls:
+        assert data is probability
+        assert kwargs["nested"] is False
+    np.testing.assert_allclose(ax.calls[-1][2]["levels"], [0.3, 0.7])
+
+
+def test_ligo_globe_notemp_posterior_is_outline_only_with_requested_style():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+    probability = np.linspace(0.0, 1.0, hp.nside2npix(1))
+
+    class FakeAxes:
+        def __init__(self):
+            self.calls = []
+
+        def contour_hpx(self, data, **kwargs):
+            self.calls.append((data, kwargs))
+            return "contours"
+
+    ax = FakeAxes()
+    result = module["draw_ligo_globe_posterior"](
+        ax,
+        probability,
+        np.array([0.7, 0.3]),
+        color="#123456",
+        draw_mesh=False,
+        draw_fills=False,
+        contour_linestyle="--",
+    )
+
+    assert result == (None, None, "contours")
+    assert len(ax.calls) == 1
+    assert ax.calls[0][1]["linestyles"] == "--"
+
+
+@pytest.mark.parametrize("frame", ["galactic", "equatorial"])
+def test_real_ligo_globe_axes_render_with_degree_ticks(frame, tmp_path):
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+    module["register_ligo_projections"]()
+    fig, ax = plt.subplots(
+        figsize=(3.0, 3.0),
+        constrained_layout=True,
+        subplot_kw={
+            "projection": module["ligo_globe_projection"](frame),
+            "center": module["ligo_globe_center"](frame, (150.0, -25.0)),
+        },
+    )
+    try:
+        module["configure_ligo_globe_axes"](
+            ax,
+            frame,
+            remove_longitude_ticks=frozenset({0, 120}),
+            remove_latitude_ticks=frozenset({-30}),
+        )
+        assert ax.coords[0].get_ticks_position() == ["equator"]
+        assert ax.coords[0].get_ticklabel_position() == ["equator"]
+        assert not ax.coords[0].get_ticklabel_visible()
+        assert ax.coords[0].get_axislabel() == ""
+        assert ax.coords[1].get_axislabel() == ""
+        frame_label = ax._ciri_frame_label
+        assert frame_label.get_text() == (
+            "Galactic" if frame == "galactic" else "Equatorial"
+        )
+        assert frame_label.get_position() == (0.975, 0.925)
+        assert frame_label.get_transform() is ax.transAxes
+        fig.canvas.draw()
+
+        custom_labels = ax._ciri_longitude_ticklabels
+        assert 0 not in custom_labels
+        assert 120 not in custom_labels
+        visible_longitudes = {
+            value for value, label in custom_labels.items() if label.get_visible()
+        }
+        assert visible_longitudes == {60, 90, 150, 180, 210, 240}
+        assert all(label.xy[1] == 0.0 for label in custom_labels.values())
+
+        center_rotation = (custom_labels[150].get_rotation() + 180.0) % 360.0 - 180.0
+        assert center_rotation == pytest.approx(0.0, abs=1e-10)
+        for value in visible_longitudes:
+            rotation = (custom_labels[value].get_rotation() + 180.0) % 360.0 - 180.0
+            assert -90.0 <= rotation <= 90.0
+
+        world_transform = ax.get_transform("world")
+        west, east = world_transform.transform([[89.0, 0.0], [91.0, 0.0]])
+        dx, dy = east - west
+        expected_rotation = np.degrees(np.arctan2(dy, dx))
+        expected_rotation = (expected_rotation + 90.0) % 180.0 - 90.0
+        actual_rotation = (custom_labels[90].get_rotation() + 180.0) % 360.0 - 180.0
+        assert actual_rotation == pytest.approx(expected_rotation)
+
+        output = tmp_path / f"{frame}-globe-ticks.png"
+        fig.savefig(output, bbox_inches="tight", dpi=100)
+        assert output.stat().st_size > 0
+
+        longitude_formatter = module["degree_tick_formatter"](
+            frozenset({0, 120}), wrap_longitude=True
+        )
+        latitude_formatter = module["degree_tick_formatter"](
+            frozenset({-30}), wrap_longitude=False
+        )
+        assert longitude_formatter(np.array([0, 120, 150, 360]) * u.deg) == [
+            "",
+            "",
+            "150°",
+            "",
+        ]
+        assert latitude_formatter(np.array([-30, 0, 30]) * u.deg) == [
+            "",
+            "0°",
+            "30°",
+        ]
+    finally:
+        plt.close(fig)
+
+
+def test_real_ligo_globe_renders_ring_healpix_contours():
+    script = Path(__file__).parents[1] / "scripts" / "figx-skymap.py"
+    module = runpy.run_path(str(script))
+    module["register_ligo_projections"]()
+    fig, ax = plt.subplots(
+        figsize=(3.0, 3.0),
+        subplot_kw={
+            "projection": "galactic degrees globe",
+            "center": module["ligo_globe_center"]("galactic", (150.0, -25.0)),
+        },
+    )
+    try:
+        longitude, latitude = hp.pix2ang(
+            8,
+            np.arange(hp.nside2npix(8)),
+            lonlat=True,
+        )
+        separation = np.deg2rad(
+            np.hypot((longitude - 150.0 + 180.0) % 360.0 - 180.0, latitude + 25.0)
+        )
+        probability = np.exp(-0.5 * np.square(separation / 0.2))
+        probability /= probability.sum()
+        thresholds = credible_density_thresholds(
+            probability,
+            [
+                gaussian_enclosed_probability(1.0),
+                gaussian_enclosed_probability(2.0),
+            ],
+        )
+
+        mesh, fills, contours = module["draw_ligo_globe_posterior"](
+            ax,
+            probability,
+            thresholds,
+            color="#123456",
+            draw_mesh=True,
+        )
+        fig.canvas.draw()
+
+        assert mesh is not None
+        assert fills is not None
+        assert contours is not None
+    finally:
+        plt.close(fig)
 
 
 def test_galactic_centre_converts_to_known_icrs_position():

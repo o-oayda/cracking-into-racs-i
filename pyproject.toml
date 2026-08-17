@@ -21,6 +21,7 @@ dependencies = [
     "astropy",
     "healpy",
     "scipy",
+    "ligo-skymap",
 ]
 
 [tool.uv.sources]
