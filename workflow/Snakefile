@@ -222,8 +222,6 @@ rule racs_nvss_ratio_plot:
     mid1_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID]
   output:
     plot='output/figx-racs-nvss-temp.pdf'
-  params:
-    observation_day='2023-12-21'
   log:
     'log/plot2.log'
   shell:
@@ -236,6 +234,7 @@ rule racs_nvss_ratio_plot:
       --noisemap-dir {input.noisemap_path} \
       --low3-artifact {input.low3_artifact:q} \
       --mid1-artifact {input.mid1_artifact:q} \
+      --no-tile-separation-cut \
       > {log:q} 2>&1
     """
 

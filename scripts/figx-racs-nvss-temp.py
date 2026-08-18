@@ -10,6 +10,7 @@ from dipoleutils.utils.plotting import plot_binned_mean, plot_binned_quantile
 import numpy as np
 from catsim.racs import Racs, RacsConfig
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from ciri.palette import CELADON, DRY_SAGE, MUTED_TEAL, MUTED_TEAL_DARK, ROSEWOOD
 from ciri.artifact_io import load_final_posterior
 from ciri.plot_style import configure_plot_style
@@ -87,6 +88,15 @@ def parse_args():
         required=True,
         help='MID1 analysis artifact containing posterior samples.'
     )
+    argparser.add_argument(
+        '--tile-separation-cut',
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            'Limit RACS sources to within 2 degrees of their tile centre '
+            '(default: enabled).'
+        ),
+    )
     args = argparser.parse_args()
     return args
 
@@ -159,17 +169,18 @@ def draw_ratio_plot(x, y, y_err, **kwargs):
 
 
 def get_ratio_per_temp_bin(
-    racs_sample: str, racs_path: str, nvss_path: str, paf_dir_path: str, noisemap_dir: str
+    racs_sample: str, racs_path: str, nvss_path: str, paf_dir_path: str,
+    noisemap_dir: str, tile_separation_cut: bool,
     ):
     racs = CatalogueToMap(load_catalogue(racs_path))
     nvss = CatalogueToMap(load_catalogue(nvss_path))
     racs.make_cut('Total_flux', minimum=FLUX_MIN, maximum=FLUX_MAX)
     nvss.make_cut('integrated_flux', minimum=FLUX_MIN, maximum=FLUX_MAX)
 
-    if racs_sample == 'mid1':
+    if racs_sample == 'mid1' and tile_separation_cut:
         racs.make_cut('Tile_centre_sep', minimum=None, maximum=2)
         print(np.max(racs.catalogue['Tile_centre_sep']))
-    elif racs_sample == 'low3':
+    elif racs_sample == 'low3' and tile_separation_cut:
         racs.make_cut('Tile_sep', minimum=None, maximum=2)
         print(np.max(racs.catalogue['Tile_sep']))
 
@@ -279,11 +290,13 @@ def main():
     args = parse_args()
     low3_bins, low3_ratios, low3_errs = get_ratio_per_temp_bin(
         'low3', racs_path=args.low3_path, nvss_path=args.nvss_path,
-        paf_dir_path=args.paf_dir_path, noisemap_dir=args.noisemap_dir
+        paf_dir_path=args.paf_dir_path, noisemap_dir=args.noisemap_dir,
+        tile_separation_cut=args.tile_separation_cut,
     )
     mid1_bins, mid1_ratios, mid1_errs = get_ratio_per_temp_bin(
         'mid1', racs_path=args.mid1_path, nvss_path=args.nvss_path,
-        paf_dir_path=args.paf_dir_path, noisemap_dir=args.noisemap_dir
+        paf_dir_path=args.paf_dir_path, noisemap_dir=args.noisemap_dir,
+        tile_separation_cut=args.tile_separation_cut,
     )
 
     plt.figure(figsize=(4,3))
@@ -307,6 +320,7 @@ def main():
     )
     ax = plt.gca()
     ax.axvspan(22, 25, color=DRY_SAGE, alpha=0.3)
+    ax.yaxis.set_major_locator(MultipleLocator(0.05))
     plt.xlabel(r'PAF temperature ($^\circ$C)')
     plt.ylabel(r'Mean flux ratio (RACS / NVSS)')
     plt.xlim(22.5, 35)
