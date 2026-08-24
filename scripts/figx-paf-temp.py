@@ -271,7 +271,7 @@ def plot_paf_temperature(
         )
     ax.set_xlim(day_start, day_end)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-    ax.set_xlabel(f'Time on {observation_day.isoformat()}')
+    ax.set_xlabel(f'Time (AWST) on {observation_day.isoformat()}')
     ax.set_ylabel(r'Temperature ($^\circ$C)')
     ax.legend()
     fig.tight_layout()
