@@ -19,6 +19,7 @@ from ciri.artifact_io import (
     load_reference_observation,
 )
 from ciri.plotting import smooth_map
+from ciri.palette import RACS_SURVEY_COLOURS
 from ciri.plot_style import configure_plot_style
 
 
@@ -364,11 +365,11 @@ def main() -> None:
     right_axes = add_map_panel(mid1_map, 122, cmap, norm)
     left_axes.text(
         0.02, -0.03, "RACS-low3", transform=left_axes.transAxes,
-        ha="left", va="bottom",
+        ha="left", va="bottom", color=RACS_SURVEY_COLOURS["low3"],
     )
     right_axes.text(
         0.98, -0.03, "RACS-mid1", transform=right_axes.transAxes,
-        ha="right", va="bottom",
+        ha="right", va="bottom", color=RACS_SURVEY_COLOURS["mid1"],
     )
 
     figure = plt.gcf()

@@ -11,7 +11,7 @@ import numpy as np
 from catsim.racs import Racs, RacsConfig
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from ciri.palette import CELADON, DRY_SAGE, MUTED_TEAL, MUTED_TEAL_DARK, ROSEWOOD
+from ciri.palette import CELADON, DRY_SAGE, MUTED_TEAL, RACS_SURVEY_COLOURS
 from ciri.artifact_io import load_final_posterior
 from ciri.plot_style import configure_plot_style
 
@@ -301,21 +301,21 @@ def main():
 
     plt.figure(figsize=(4,3))
     draw_ratio_plot(
-        low3_bins, low3_ratios, low3_errs, label='RACS-low3', color=MUTED_TEAL_DARK,
+        low3_bins, low3_ratios, low3_errs, label='RACS-low3', color=RACS_SURVEY_COLOURS['low3'],
         marker='o'
     )
     plot_model_fit(
         args.low3_artifact,
-        MUTED_TEAL_DARK,
+        RACS_SURVEY_COLOURS['low3'],
         flux_ratio_at_temperature(low3_bins, low3_ratios),
     )
     draw_ratio_plot(
-        mid1_bins, mid1_ratios, mid1_errs, label='RACS-mid1', color=ROSEWOOD,
+        mid1_bins, mid1_ratios, mid1_errs, label='RACS-mid1', color=RACS_SURVEY_COLOURS['mid1'],
         marker='s'
     )
     plot_model_fit(
         args.mid1_artifact,
-        ROSEWOOD,
+        RACS_SURVEY_COLOURS['mid1'],
         flux_ratio_at_temperature(mid1_bins, mid1_ratios),
     )
     ax = plt.gca()

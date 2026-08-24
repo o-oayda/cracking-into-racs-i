@@ -13,7 +13,7 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ciri.palette import MUTED_TEAL_DARK, ROSEWOOD
+from ciri.palette import MUTED_TEAL_DARK, RACS_SURVEY_COLOURS, ROSEWOOD
 from ciri.plot_style import configure_plot_style
 from ciri.skymap import (
     SkyFrame,
@@ -52,12 +52,12 @@ from ciri.skymap import (
 configure_plot_style()
 
 POSTERIORS = (
-    ("RACS-low3", MUTED_TEAL_DARK),
-    ("RACS-mid1", ROSEWOOD),
+    ("RACS-low3", RACS_SURVEY_COLOURS["low3"]),
+    ("RACS-mid1", RACS_SURVEY_COLOURS["mid1"]),
 )
 NOTEMP_POSTERIORS = (
-    ("No temp.", MUTED_TEAL_DARK, "--"),
-    ("No temp.", ROSEWOOD, ":"),
+    ("No temp.", RACS_SURVEY_COLOURS["low3"], "--"),
+    ("No temp.", RACS_SURVEY_COLOURS["mid1"], ":"),
 )
 SIGMAS = (1.0, 2.0)
 NOTEMP_CONTOUR_ALPHA = 0.6

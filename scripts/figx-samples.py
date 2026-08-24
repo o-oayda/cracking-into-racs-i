@@ -7,6 +7,7 @@ from matplotlib.colors import Normalize
 import numpy as np
 
 from ciri.artifact_io import load_reference_observation
+from ciri.palette import RACS_SURVEY_COLOURS
 from ciri.plotting import smooth_map
 from ciri.plot_style import configure_plot_style
 
@@ -107,6 +108,7 @@ def main():
         0.02,
         -0.03,
         'RACS-low3',
+        color=RACS_SURVEY_COLOURS['low3'],
         transform=left_axes.transAxes,
         ha='left',
         va='bottom',
@@ -115,6 +117,7 @@ def main():
         0.98,
         -0.03,
         'RACS-mid1',
+        color=RACS_SURVEY_COLOURS['mid1'],
         transform=right_axes.transAxes,
         ha='right',
         va='bottom',

@@ -13,5 +13,13 @@ MUTED_TEAL = '#82C498'
 MUTED_TEAL_DARK = '#50a96d'
 APRICOT_CREAM = '#FFCF9C'
 
+DORANGE = '#B66737'
+DABBIDI_DABADA = '#7897C3'
+
+RACS_SURVEY_COLOURS = {
+    'low3': DABBIDI_DABADA,
+    'mid1': DORANGE,
+}
+
 if __name__ == '__main__':
     pass

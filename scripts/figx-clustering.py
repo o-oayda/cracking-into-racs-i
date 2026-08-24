@@ -9,7 +9,7 @@ from scipy.stats import poisson
 from scipy.special import gamma
 
 from ciri.artifact_io import load_reference_observation
-from ciri.palette import DRY_SAGE, MUTED_TEAL_DARK, ROSEWOOD, TANGERINE_DREAM_DARK
+from ciri.palette import DRY_SAGE, RACS_SURVEY_COLOURS, TANGERINE_DREAM_DARK
 from ciri.plot_style import configure_plot_style
 
 
@@ -134,14 +134,14 @@ def main():
         draw_plots(
             data_tuple_low3,
             axes,
-            (MUTED_TEAL_DARK, TANGERINE_DREAM_DARK),
+            (RACS_SURVEY_COLOURS['low3'], TANGERINE_DREAM_DARK),
             marker='o',
             label='RACS-low3',
         ),
         draw_plots(
             data_tuple_mid1,
             axes,
-            (ROSEWOOD, TANGERINE_DREAM_DARK),
+            (RACS_SURVEY_COLOURS['mid1'], TANGERINE_DREAM_DARK),
             marker='s',
             label='RACS-mid1',
         ),

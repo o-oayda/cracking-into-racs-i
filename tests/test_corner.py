@@ -14,6 +14,7 @@ from ciri.corner import (
     prepare_marginal_samples,
     weighted_quantiles,
 )
+from ciri.palette import RACS_SURVEY_COLOURS
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "figx-corner.py"
@@ -58,6 +59,18 @@ def test_corner_cli_defaults_to_galactic_and_accepts_equatorial(monkeypatch):
     assert module["parse_args"]().coordinates == "galactic"
     monkeypatch.setattr(sys, "argv", [*required, "--coordinates", "equatorial"])
     assert module["parse_args"]().coordinates == "equatorial"
+
+
+def test_corner_uses_the_shared_racs_survey_colours(monkeypatch):
+    module = load_script(monkeypatch)
+    assert RACS_SURVEY_COLOURS == {
+        "low3": "#7897C3",
+        "mid1": "#B66737",
+    }
+    assert module["SAMPLE_COLORS"] == (
+        RACS_SURVEY_COLOURS["mid1"],
+        RACS_SURVEY_COLOURS["low3"],
+    )
 
 
 @pytest.mark.parametrize(

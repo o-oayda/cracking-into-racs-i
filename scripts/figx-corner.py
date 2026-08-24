@@ -8,14 +8,17 @@ from ciri.artifact_io import load_final_posterior
 from ciri.corner import corner_parameters, prepare_corner_samples
 from ciri.skymap import SkyFrame
 from paperplot import style_name
-from ciri.palette import MUTED_TEAL, ROSEWOOD, MUTED_TEAL_DARK, TANGERINE_DREAM_DARK
+from ciri.palette import RACS_SURVEY_COLOURS
 
 
 plots.set_active_style(style_name)
 import matplotlib.pyplot as plt
 
 
-SAMPLE_COLORS = (ROSEWOOD, MUTED_TEAL_DARK) #, TANGERINE_DREAM_DARK)
+SAMPLE_COLORS = (
+    RACS_SURVEY_COLOURS["mid1"],
+    RACS_SURVEY_COLOURS["low3"],
+)
 
 
 def parse_args() -> argparse.Namespace:
