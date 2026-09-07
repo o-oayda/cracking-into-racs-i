@@ -73,6 +73,23 @@ def test_corner_uses_the_shared_racs_survey_colours(monkeypatch):
     )
 
 
+def test_marginal_interval_uses_equal_width_sign_boxes(monkeypatch):
+    load_script(monkeypatch)
+    from paperplot import PaperPlotter
+
+    class Formatter:
+        _round_to_sig = staticmethod(PaperPlotter._round_to_sig)
+        _format_fixed = staticmethod(PaperPlotter._format_fixed)
+
+    interval = PaperPlotter._format_interval(Formatter(), 4.02, 3.28, 4.77)
+    sign_width = r"\widthof{$\scriptstyle-$}"
+
+    assert interval == (
+        rf"4.02^{{\mathmakebox[{sign_width}][c]{{+}}0.75}}"
+        rf"_{{\mathmakebox[{sign_width}][c]{{-}}0.74}}"
+    )
+
+
 @pytest.mark.parametrize(
     ("frame", "longitude_label", "latitude_label"),
     [

@@ -16,7 +16,8 @@ def plot_rc_params(font_family: FontFamily = FONT_FAMILY) -> dict[str, object]:
         return {
             "text.usetex": True,
             "text.latex.preamble": (
-                r"\usepackage{amsmath}\usepackage{sfmath}"
+                r"\usepackage{amsmath}\usepackage{mathtools}"
+                r"\usepackage{sfmath}"
             ),
             "font.family": "sans-serif",
             "font.sans-serif": ["Helvetica", "DejaVu Sans"],
@@ -24,7 +25,9 @@ def plot_rc_params(font_family: FontFamily = FONT_FAMILY) -> dict[str, object]:
     if font_family == "serif":
         return {
             "text.usetex": True,
-            "text.latex.preamble": r"\usepackage{amsmath}",
+            "text.latex.preamble": (
+                r"\usepackage{amsmath}\usepackage{mathtools}"
+            ),
             "font.family": "serif",
             "font.serif": ["Computer Modern", "DejaVu Serif"],
         }

@@ -80,7 +80,12 @@ class PaperPlotter(plots.GetDistPlotter):
         plus_str = self._format_fixed(round(plus_val, common_dec), common_dec)
         minus_str = self._format_fixed(round(minus_val, common_dec), common_dec)
         median_str = self._format_fixed(round(median, common_dec), common_dec)
-        return rf"{median_str}^{{+{plus_str}}}_{{-{minus_str}}}"
+        # Reserve the width of the wider minus glyph for both signs so the
+        # upper and lower uncertainty values start at the same position.
+        sign_width = r"\widthof{$\scriptstyle-$}"
+        plus = rf"\mathmakebox[{sign_width}][c]{{+}}"
+        minus = rf"\mathmakebox[{sign_width}][c]{{-}}"
+        return rf"{median_str}^{{{plus}{plus_str}}}_{{{minus}{minus_str}}}"
 
     def add_1d(
         self,
