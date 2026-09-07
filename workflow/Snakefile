@@ -359,7 +359,7 @@ rule skymap:
     O24_point=('galactic', 322, 61, 'O24'),
     position_angle=310
   output:
-    'output/figx-skymap.png'
+    'output/figx-skymap.pdf'
   log:
     'log/skymap.log'
   shell:
