@@ -35,12 +35,14 @@ uv run snakemake all \
 ```
 
 Otherwise, the `numpy` backend with `catsim`'s `batch_simulate` will be used.
-In this case, you can specify a number of threads to use like so:
+In this case, you can specify a number of threads to use like so, being sure
+to match the numbers in the `set-threads` and snakemake `cores` arguments:
 ```
 uv run snakemake all \
     --config posterior_predictive_backend=numpy \
     --set-threads posterior_predictive_residuals=8 \
-    --cores 1
+    --cores 8
 ```
-This will speed up the production of the simulation for the residuals plot by
+Change 8 with however many threads are available on your system. This will
+speed up the production of the simulation for the residuals plot by
 distributing the jobs over many workers via `joblib`.
