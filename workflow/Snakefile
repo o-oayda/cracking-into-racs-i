@@ -442,6 +442,7 @@ rule tempmap:
   input:
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
     mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    paf_dir_path=PAF_DIR_PATH,
   output:
     "output/figx-tempmap.pdf"
   log:
@@ -451,6 +452,7 @@ rule tempmap:
     python scripts/figx-tempmap.py \
       --mid1-artifact {input.mid1_artifact:q} \
       --low3-artifact {input.low3_artifact:q} \
+      --paf-dir-path {input.paf_dir_path:q} \
       > {log:q} 2>&1
     """
 

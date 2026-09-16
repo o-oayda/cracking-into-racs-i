@@ -17,13 +17,14 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mid1-artifact", type=Path, required=False)
     parser.add_argument("--low3-artifact", type=Path, required=False)
+    parser.add_argument("--paf-dir-path", type=Path, required=True)
     return parser.parse_args()
 
 
-def load_racs_object(artifact) -> catsim.Racs:
+def load_racs_object(artifact: Path, paf_dir_path: Path) -> catsim.Racs:
     cfg = load_model_config(artifact)
     cfg.catalogue_path = '/home/oliver/catalogue_data/racs/mid1/RACS-mid1_noscale_srl.fits'
-    cfg.paf_temperature_data_dir = '/home/oliver/Documents/dipole-utils/data/paf_temps'
+    cfg.paf_temperature_data_dir = str(paf_dir_path.expanduser())
     racs = catsim.Racs(cfg)
     racs.initialise_data()
     return racs
@@ -49,8 +50,8 @@ def add_temp_panel(
 
 def main():
     args = parse_args()
-    low3 = load_racs_object(args.low3_artifact)
-    mid1 = load_racs_object(args.mid1_artifact)
+    low3 = load_racs_object(args.low3_artifact, args.paf_dir_path)
+    mid1 = load_racs_object(args.mid1_artifact, args.paf_dir_path)
 
     temperature_min = min(
         np.nanmin(low3.temperature_map),
