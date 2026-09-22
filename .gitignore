@@ -1,5 +1,5 @@
 output/
-artifacts/cache/
+*.zip
 derived/
 .DS_Store
 
