@@ -134,7 +134,7 @@ rule all:
       'output/figx-paf-temp.pdf',
       'output/figx-racs-nvss-temp.pdf',
       'output/figx-corner.pdf',
-      'output/figx-skymap.png',
+      'output/figx-skymap.pdf',
       'output/figx-samples.pdf',
       'output/figx-posterior-predictive-residuals.pdf',
       'output/figx-clustering.pdf',
