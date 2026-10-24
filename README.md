@@ -1,5 +1,6 @@
 # cracking-into-racs-i
 
+
 ## Installation
 ### Requirements
 - `uv` project manager, see [here](https://docs.astral.sh/uv/)
@@ -17,6 +18,10 @@ as the job is distributed across many threads (see below) but will take quite a
 bit longer on the `posterior_predictive_residuals` rule.
 
 ### Obtaining the data (WIP)
+
+> [!WARNING]
+> Links to the data will be provided very soon.
+
 The key raw data products used in this analysis are:
 
 1. The unscaled RACS-mid1 and RACS-low3 source catalogues;
