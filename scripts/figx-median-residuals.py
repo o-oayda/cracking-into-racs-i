@@ -15,7 +15,7 @@ from ciri.artifact_io import (
 )
 from ciri.palette import RACS_SURVEY_COLOURS
 from ciri.plotting import smooth_map
-from ciri.plot_style import configure_plot_style
+from ciri.plot_style import configure_plot_style, configure_sky_graticule
 
 
 POSTERIOR_PARAMETERS = (
@@ -111,6 +111,7 @@ def add_map_panel(
     sub: int,
     cmap,
     norm: Normalize,
+    latitude_label_side: str,
 ):
     hp.projview(
         sample_map,
@@ -121,7 +122,9 @@ def add_map_panel(
         sub=sub,
         dpi=300,
     )
-    return plt.gca()
+    axes = plt.gca()
+    configure_sky_graticule(axes, latitude_label_side, colour='light')
+    return axes
 
 
 def add_map_colorbar(
@@ -184,8 +187,8 @@ def main() -> None:
     low3_norm = Normalize(vmin=low3_min, vmax=low3_max)
     mid1_norm = Normalize(vmin=mid1_min, vmax=mid1_max)
 
-    left_axes = add_map_panel(low3_map, 121, cmap, low3_norm)
-    right_axes = add_map_panel(mid1_map, 122, cmap, mid1_norm)
+    left_axes = add_map_panel(low3_map, 121, cmap, low3_norm, 'right')
+    right_axes = add_map_panel(mid1_map, 122, cmap, mid1_norm, 'left')
     left_axes.text(
         0.02,
         -0.03,

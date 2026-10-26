@@ -20,7 +20,7 @@ from ciri.artifact_io import (
 )
 from ciri.plotting import smooth_map
 from ciri.palette import RACS_SURVEY_COLOURS
-from ciri.plot_style import configure_plot_style
+from ciri.plot_style import configure_plot_style, configure_sky_graticule
 
 
 POSTERIOR_PARAMETERS = (
@@ -295,7 +295,9 @@ def posterior_predictive_residual(
     return residual
 
 
-def add_map_panel(sample_map: NDArray[np.floating], sub: int, cmap, norm):
+def add_map_panel(
+    sample_map: NDArray[np.floating], sub: int, cmap, norm, latitude_label_side: str,
+):
     hp.projview(
         sample_map,
         cmap=cmap,
@@ -305,7 +307,9 @@ def add_map_panel(sample_map: NDArray[np.floating], sub: int, cmap, norm):
         sub=sub,
         dpi=300,
     )
-    return plt.gca()
+    axes = plt.gca()
+    configure_sky_graticule(axes, latitude_label_side, colour='dark')
+    return axes
 
 
 def add_map_colorbar(figure, cmap, norm, limit: float) -> None:
@@ -361,8 +365,8 @@ def main() -> None:
     if not np.isfinite(limit) or limit <= 0.0:
         raise ValueError("Residual maps must contain finite, non-zero values")
     norm = TwoSlopeNorm(vmin=-limit, vcenter=0.0, vmax=limit)
-    left_axes = add_map_panel(low3_map, 121, cmap, norm)
-    right_axes = add_map_panel(mid1_map, 122, cmap, norm)
+    left_axes = add_map_panel(low3_map, 121, cmap, norm, 'right')
+    right_axes = add_map_panel(mid1_map, 122, cmap, norm, 'left')
     left_axes.text(
         0.02, -0.03, "RACS-low3", transform=left_axes.transAxes,
         ha="left", va="bottom", color=RACS_SURVEY_COLOURS["low3"],

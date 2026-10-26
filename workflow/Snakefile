@@ -240,6 +240,8 @@ rule racs_nvss_ratio_plot:
 
 rule samples:
   input:
+    plot_script="scripts/figx-samples.py",
+    plot_style="src/ciri/plot_style.py",
     mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
     mid1_report=ANALYSIS_VERIFICATION_REPORTS[MID1_ID],
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
@@ -250,7 +252,7 @@ rule samples:
     'log/sample_plot.log'
   shell:
     """
-    python scripts/figx-samples.py \
+    python {input.plot_script:q} \
       --mid1-artifact {input.mid1_artifact:q} \
       --low3-artifact {input.low3_artifact:q} \
       > {log:q} 2>&1
@@ -387,6 +389,8 @@ rule skymap:
 
 rule posterior_predictive_residuals:
   input:
+    plot_script="scripts/figx-posterior-predictive-residuals.py",
+    plot_style="src/ciri/plot_style.py",
     paf_dir_path=PAF_DIR_PATH,
     noisemap_path=NOISEMAP_PATH,
     low3_catalogue_path=LOW3_PATH,
@@ -408,7 +412,7 @@ rule posterior_predictive_residuals:
     'log/posterior-predictive-residuals.log'
   shell:
     """
-    python scripts/figx-posterior-predictive-residuals.py \
+    python {input.plot_script:q} \
       --low3-artifact {input.low3_artifact:q} \
       --mid1-artifact {input.mid1_artifact:q} \
       --low3-catalogue-path {input.low3_catalogue_path:q} \
@@ -440,6 +444,8 @@ rule clustering:
 
 rule tempmap:
   input:
+    plot_script="scripts/figx-tempmap.py",
+    plot_style="src/ciri/plot_style.py",
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
     mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
     paf_dir_path=PAF_DIR_PATH,
@@ -449,7 +455,7 @@ rule tempmap:
     "log/tempmap.log"
   shell:
     """
-    python scripts/figx-tempmap.py \
+    python {input.plot_script:q} \
       --mid1-artifact {input.mid1_artifact:q} \
       --low3-artifact {input.low3_artifact:q} \
       --paf-dir-path {input.paf_dir_path:q} \
@@ -458,6 +464,8 @@ rule tempmap:
 
 rule median_predictive:
   input:
+    plot_script="scripts/figx-median-residuals.py",
+    plot_style="src/ciri/plot_style.py",
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
     mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
     low3_catalogue_path=LOW3_PATH,
@@ -470,7 +478,7 @@ rule median_predictive:
     'log/median_predictive.log'
   shell:
     """
-    python scripts/figx-median-residuals.py \
+    python {input.plot_script:q} \
       --low3-artifact {input.low3_artifact:q} \
       --mid1-artifact {input.mid1_artifact:q} \
       --low3-catalogue-path {input.low3_catalogue_path:q} \
