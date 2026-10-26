@@ -1,0 +1,173 @@
+racs_mid1_catalogue:
+  note: "this version contains the corrected declination column"
+  dropbox_link: https://www.dropbox.com/scl/fi/j3srlty79n182n0rzinky/RACS-mid1_noscale_srl.fits?rlkey=ujfxsv68j3nf8gbspl3zk7931&st=d78345tw&e=1&dl=0
+  filename: RACS-mid1_noscale_srl.fits
+  sha256: a3eeba1fb5df389b1b7ec536076d23265d12d639b8489c4de29a44e44d88696a
+  modified_sha256: 142312a8b0cc522f0c451ac76384ac58d002b23564f8402d59cd6b61b0bf93ac
+
+racs_mid1_noisemap:
+  filename: RACS-mid1.iqr.hpx
+  dropbox_link: https://www.dropbox.com/scl/fi/ts5ub5qpcy47aje1uwifm/RACS-mid1.iqr.hpx?rlkey=ihuqy5op6011ss5cxkpbsz6m8&e=1&dl=0
+  sha256: d0448fdaafb348e572e3ac897845de3e59a9f93d8922eb7a023518ccb3bfeb82
+
+racs_low3_catalogue:
+  sha256: 7fa137fd34e4b0ba28741dbc2a01dfbb9d98da57ddf65dc1a37a190e421308f1
+  dropbox_link: https://www.dropbox.com/scl/fi/rjv8s1wbs85g94kzoad6w/RACS-low3_sources.fits?rlkey=yzdxoczluehbspfnv3ri9942c&st=it4avcol&e=1&dl=0
+  filename: RACS-low3_sources.fits
+
+racs_low3_noisemap:
+  filename: RACS-low3.iqr.hpx
+  dropbox_link: https://www.dropbox.com/scl/fi/izgsptw5xx7e3cqzlnd07/RACS-low3.iqr.hpx?rlkey=35oib3e1hd2lrfszia46f47v9&e=1&dl=0
+  sha256: 738f6584dac9d2b21b36d5de107fe8e158e9139f5be4f5d49240a72b73a2f4f1
+
+racs_mid1_paf_temperatures:
+  dropbox_link: https://www.dropbox.com/scl/fo/g5sevljpcmudx28hpoimh/AFSYIccZNy_ac3P1CQt5OUs/racs_mid1?dl=0&rlkey=wjrkev89j6klacv0n4v1vqsfr&subfolder_nav_tracking=1
+  files:
+    - filename: "ak01 ctrl_adc1_pafAvTemp-data-2026-06-12 04_53_58.csv"
+      sha256: e5438eb6bd7ba7052027652ae7414485804a49124943c926c6640757253472ab
+    - filename: "ak02 ctrl_adc1_pafAvTemp-data-2026-06-12 04_13_17.csv"
+      sha256: c058adbdc03f938dc81a79b2cbc04ae9dcb0371cea981e7588b8232919929e6b
+    - filename: "ak03 ctrl_adc1_pafAvTemp-data-2026-06-12 04_54_29.csv"
+      sha256: 05d16f592a063b8a4092979e3a500bbf1ce0b79bafc7e3a19eb424ff32ec3972
+    - filename: "ak04 ctrl_adc1_pafAvTemp-data-2026-06-12 04_54_54.csv"
+      sha256: a1d21ce98e4c1779de47c3eb6266b34cdaedb79637cc4843b526043386b459d9
+    - filename: "ak05 ctrl_adc1_pafAvTemp-data-2026-06-12 04_55_17.csv"
+      sha256: 8102ebae270009e17575917da377aef676b42133570709127b68435eb46017cb
+    - filename: "ak06 ctrl_adc1_pafAvTemp-data-2026-06-12 04_55_37.csv"
+      sha256: 02156265552de2a9825117b240df66918b46a314f6739fa4c25c5f667a261dcf
+    - filename: "ak07 ctrl_adc1_pafAvTemp-data-2026-06-12 04_56_00.csv"
+      sha256: 41958d937c0ebaca6efc50b0802f6086db84199b535de4be44b7c359fa2af387
+    - filename: "ak08 ctrl_adc1_pafAvTemp-data-2026-06-12 04_57_44.csv"
+      sha256: b033e3d868064e263d62901817c3d64987361e7d1420e5a6276922b3d39b9a95
+    - filename: "ak09 ctrl_adc1_pafAvTemp-data-2026-06-12 04_58_07.csv"
+      sha256: 0dd90816e783b60b06f49888fb6580bedc92b346e5aa5431627922f1319c0582
+    - filename: "ak10 ctrl_adc1_pafAvTemp-data-2026-06-12 04_58_27.csv"
+      sha256: 1bdcd8be4f474e005d32d157e09773ca3f1d8cac66883b6ed9d70649a93edb46
+    - filename: "ak11 ctrl_adc1_pafAvTemp-data-2026-06-12 04_58_51.csv"
+      sha256: 9c7f6b224da990a3b285fda2c927d27a04cad0b5f531b7ee77c0a3558a0003c1
+    - filename: "ak12 ctrl_adc1_pafAvTemp-data-2026-06-12 04_59_09.csv"
+      sha256: 6b4cc48fb17fbb1111abfbe19ac9ac60de7294ceb22c91a0b8491ee7633fbbf4
+    - filename: "ak13 ctrl_adc1_pafAvTemp-data-2026-06-12 04_59_28.csv"
+      sha256: 1fdaeb39105f1d8006b3967c2dd098ac32fd5b34d28aa1e8a2df1f4df458898c
+    - filename: "ak14 ctrl_adc1_pafAvTemp-data-2026-06-12 04_59_46.csv"
+      sha256: c1b24fd0b0b80713af8e393eb97a2e32b6016665c024541d5e9ec3467b36d8f4
+    - filename: "ak15 ctrl_adc1_pafAvTemp-data-2026-06-12 05_00_04.csv"
+      sha256: d6ae54c422d42532c0ee48445a57136aee5f83fa1e227648df5f9cde375a07b9
+    - filename: "ak16 ctrl_adc1_pafAvTemp-data-2026-06-12 05_00_40.csv"
+      sha256: d0c3c7797ea0c5a5bba17a4dbafee17ffd308ba2645c35b5933f97ced419f80d
+    - filename: "ak17 ctrl_adc1_pafAvTemp-data-2026-06-12 05_01_02.csv"
+      sha256: 10879fc93d47f4f190794d93a23ab803b2d544af72955772313923439764e09a
+    - filename: "ak18 ctrl_adc1_pafAvTemp-data-2026-06-12 05_01_22.csv"
+      sha256: ad2ab49188e8a5944354c6acf819fc856577bedd3fc121d5135d387a75574181
+    - filename: "ak19 ctrl_adc1_pafAvTemp-data-2026-06-12 05_01_42.csv"
+      sha256: 4503e73618db4fcf79120c88b73f28b799aae5c69c1468c57f5acbb70837f585
+    - filename: "ak20 ctrl_adc1_pafAvTemp-data-2026-06-12 05_02_03.csv"
+      sha256: 7297d1114394b107a62247ed5c4f617c9b9257d225d9298835c69e10657f2f8e
+    - filename: "ak21 ctrl_adc1_pafAvTemp-data-2026-06-12 05_02_24.csv"
+      sha256: 2db8bd8c127c112e973c5700def822b6cfb3b799d15f80d3b988af94c4060628
+    - filename: "ak22 ctrl_adc1_pafAvTemp-data-2026-06-12 05_02_59.csv"
+      sha256: 9ad2d8f8c88fcca86a4fd7d9aaebf2ff51df0ec9e6cce29068641ab285be73be
+    - filename: "ak23 ctrl_adc1_pafAvTemp-data-2026-06-12 05_03_17.csv"
+      sha256: 631d559945b0fe195134b5abc61862fd5a1984fe163b282f7809db1605ac3379
+    - filename: "ak24 ctrl_adc1_pafAvTemp-data-2026-06-12 05_03_36.csv"
+      sha256: a2423c35a8bb4f04e8ac9909272aff7b203bdabf2d862b5ee56920305bafd373
+    - filename: "ak25 ctrl_adc1_pafAvTemp-data-2026-06-12 05_03_57.csv"
+      sha256: 6b1908d7ead99ade51b94770be97dd7ca373a3fb55821ca49c675374291af222
+    - filename: "ak26 ctrl_adc1_pafAvTemp-data-2026-06-12 05_04_19.csv"
+      sha256: 765ca225d7d620781d8151f6e0022e4f00362a24901c35321f7d7928f48e14b6
+    - filename: "ak27 ctrl_adc1_pafAvTemp-data-2026-06-12 05_04_41.csv"
+      sha256: 63aefee29d0ef8811bb302f2bc4c29d81a8b970cf5df1647fa596a8f2dc796b6
+    - filename: "ak28 ctrl_adc1_pafAvTemp-data-2026-06-12 05_04_59.csv"
+      sha256: c68855a4ed913d6252d51fa75849b77e91d7143e50b9d85ea210c2bd1d9876b8
+    - filename: "ak29 ctrl_adc1_pafAvTemp-data-2026-06-12 05_05_24.csv"
+      sha256: 532641fd149de257dd67c7030dafeaf8bc119ead69e995993567427fe65acd41
+    - filename: "ak30 ctrl_adc1_pafAvTemp-data-2026-06-12 05_05_43.csv"
+      sha256: 32cfc6d681bc9233437df927da3ff201f7d8a4d98b00e09bb2f70b314d79555f
+    - filename: "ak31 ctrl_adc1_pafAvTemp-data-2026-06-12 05_06_03.csv"
+      sha256: 23e03055c1738944038e9089672fa63a42591f194a9ef48a18154a305c5f8270
+    - filename: "ak32 ctrl_adc1_pafAvTemp-data-2026-06-12 05_06_21.csv"
+      sha256: 414dcbd29b6f2efad3ad0ec91f57e67eb2195d27f790a68ed082db55c01f3788
+    - filename: "ak33 ctrl_adc1_pafAvTemp-data-2026-06-12 05_06_38.csv"
+      sha256: c5678765b94982fa5ef7dff62a0c76e190e178a27d70f55fab3e83632affd928
+    - filename: "ak34 ctrl_adc1_pafAvTemp-data-2026-06-12 05_06_58.csv"
+      sha256: 8e9ce5db6d57bf762d7d4e6a64c2a8ccb110b03ef1557ce39f631e2a757de71b
+    - filename: "ak35 ctrl_adc1_pafAvTemp-data-2026-06-12 05_07_18.csv"
+      sha256: c1c804a4f6511791db6a07ce6f1c9746feddc848e0602c6bf82ce2110551f15b
+    - filename: "ak36 ctrl_adc1_pafAvTemp-data-2026-06-12 05_07_37.csv"
+      sha256: f4c32a4ec5028b75a5ddec9aa80b81372a52802ad7e552d8dcd829bdfbe8625c
+
+racs_low3_paf_temperatures:
+  dropbox_link: https://www.dropbox.com/scl/fo/g5sevljpcmudx28hpoimh/AMKydWojDo7B2-DWvTf219Q/racs_low3?dl=0&rlkey=wjrkev89j6klacv0n4v1vqsfr&subfolder_nav_tracking=1
+  files:
+    - filename: "ak01 ctrl_adc1_pafAvTemp-data-2026-04-01 03_02_43.csv"
+      sha256: bccf1e6542b07ed800edfd7aa70940a232b1ac26f06da69d3aca51865f83e689
+    - filename: "ak02 ctrl_adc1_pafAvTemp-data-2026-04-01 03_04_40.csv"
+      sha256: 5eb6a05b3ac6f1e0a697128da4e11d2868948044436f72fafd4768b9fdc6c97c
+    - filename: "ak03 ctrl_adc1_pafAvTemp-data-2026-04-01 03_05_01.csv"
+      sha256: 26a1931b2a0fdb22afb106ae3bc25be0fdbcbc6cdf14c273ecf5c95ef7274050
+    - filename: "ak04 ctrl_adc1_pafAvTemp-data-2026-04-01 03_05_20.csv"
+      sha256: 45c41da67ccc8ffb49870e71459be63674f1d651b376d54cadb8b711b7d9879b
+    - filename: "ak05 ctrl_adc1_pafAvTemp-data-2026-04-01 03_05_43.csv"
+      sha256: 5bbf46227d53f0ec807a76990ff903b9d350feec16c0646003e34c0948e09dfb
+    - filename: "ak06 ctrl_adc1_pafAvTemp-data-2026-04-01 03_29_42.csv"
+      sha256: fca3154b9b6c751faf2d37bbc4c535fa80c098329aff547296abc1a70a321ee5
+    - filename: "ak07 ctrl_adc1_pafAvTemp-data-2026-04-01 03_30_01.csv"
+      sha256: 2257b2c3add8e9290ea65d0328d32db44f16f9af8af6860eaa8362d1c3f9ee78
+    - filename: "ak08 ctrl_adc1_pafAvTemp-data-2026-04-01 03_35_39.csv"
+      sha256: ae8979ec3955a2b8c6388ba9e4a3818e1073ec010792b88eb5cf72c115c8465c
+    - filename: "ak09 ctrl_adc1_pafAvTemp-data-2026-04-01 03_36_34.csv"
+      sha256: dbb08003c41ff132bb6c2265d78a48169e198b2618cd37f3ad799736968d2d60
+    - filename: "ak10 ctrl_adc1_pafAvTemp-data-2026-04-01 03_36_56.csv"
+      sha256: 72e5c711fc6bf690df93301011f4bfa0b9d73a950c63e8cc7ba9ac2e63a3f4e7
+    - filename: "ak11 ctrl_adc1_pafAvTemp-data-2026-04-01 03_37_49.csv"
+      sha256: 14ed799754af123e72a36e50983f736c3a5948d497cd495f0bfc0d7ea5e8462e
+    - filename: "ak12 ctrl_adc1_pafAvTemp-data-2026-04-01 03_38_12.csv"
+      sha256: f826ddc226adc09f8dac4c5e47aefd8d822873dfb5e34acfebe21c57249c6459
+    - filename: "ak13 ctrl_adc1_pafAvTemp-data-2026-04-01 05_08_16.csv"
+      sha256: 660a5e526e5457331be1c2c59bd361d4b66fbbd183061bafb12194047479971a
+    - filename: "ak14 ctrl_adc1_pafAvTemp-data-2026-04-01 05_08_35.csv"
+      sha256: c3eee83534a339107bd5f8cdd818597c62d27e490e246c9511db7a1333ea7616
+    - filename: "ak15 ctrl_adc1_pafAvTemp-data-2026-04-01 05_08_55.csv"
+      sha256: 0847eeef57d858d782b6fdde0932d90a3b64df838dbec4c520a072a594ee917b
+    - filename: "ak16 ctrl_adc1_pafAvTemp-data-2026-04-01 05_09_14.csv"
+      sha256: 105d32d3a566dcc2be5577b18b416fed413fd3cd16abd03ea1cb574e22b5c770
+    - filename: "ak17 ctrl_adc1_pafAvTemp-data-2026-04-01 05_10_18.csv"
+      sha256: 9a6f0d301e0056b3ee24e5118aa1e0386026f41ff2708a8f404837e350b508f5
+    - filename: "ak18 ctrl_adc1_pafAvTemp-data-2026-04-01 05_10_36.csv"
+      sha256: 824c44625785b67c34d34d5ecb40ae633c9dca4252b53f71ac10c7d4f9f30381
+    - filename: "ak19 ctrl_adc1_pafAvTemp-data-2026-04-01 05_10_55.csv"
+      sha256: fce0310161685474eb46fe9d5fb011f54e10ff7d0f51164a30a5c35fff9eccab
+    - filename: "ak20 ctrl_adc1_pafAvTemp-data-2026-04-01 05_14_51.csv"
+      sha256: 175ec7decbe8cd7e86a5dd13a9b07511636ebecb2c4bdac0402920881f57e8e2
+    - filename: "ak21 ctrl_adc1_pafAvTemp-data-2026-04-01 05_15_09.csv"
+      sha256: 71983540d54c132c6902302f39a0b0c3058d702a740efccfb5ad51154229317b
+    - filename: "ak22 ctrl_adc1_pafAvTemp-data-2026-04-01 05_15_29.csv"
+      sha256: 63ab8b0716f036ce75baa213cc07cd84c2bb9b0f0ab7e739534dc82ed3927a36
+    - filename: "ak23 ctrl_adc1_pafAvTemp-data-2026-04-01 05_16_16.csv"
+      sha256: 575ca42a012401c81766f906fe4639bbec6895726da8476e923b2521180740da
+    - filename: "ak24 ctrl_adc1_pafAvTemp-data-2026-04-01 05_16_33.csv"
+      sha256: e98028afcb9b5dedd04bca07fe499370d5480ae19ba18aae32439e23b23a769f
+    - filename: "ak25 ctrl_adc1_pafAvTemp-data-2026-04-01 05_16_50.csv"
+      sha256: 3a994ba1f5736cf5cf2d805d04f76c661c71a1da44101d44fe4f899ac8e6751a
+    - filename: "ak26 ctrl_adc1_pafAvTemp-data-2026-04-01 05_17_13.csv"
+      sha256: 735fed4394b16a8f6e2545436a077afd36310e7b8bf1ecdb55ec76232b86949a
+    - filename: "ak27 ctrl_adc1_pafAvTemp-data-2026-04-01 05_17_33.csv"
+      sha256: 1b71b4f116e907567e0ea49aa6d23480722e07c26af193e0adb5549a46a94580
+    - filename: "ak28 ctrl_adc1_pafAvTemp-data-2026-04-01 05_17_54.csv"
+      sha256: 074fe058f4842e95e962cd14efbb922da5e98b6d5897e8d5ab8a2f8b4b39b9a4
+    - filename: "ak29 ctrl_adc1_pafAvTemp-data-2026-04-01 05_18_26.csv"
+      sha256: ff8e7a269d13d912f7cc9a44645f86335dbeff7372798de398e1eb347e11cedb
+    - filename: "ak30 ctrl_adc1_pafAvTemp-data-2026-04-01 05_18_43.csv"
+      sha256: 249d0d5d0002cc466a29a68e885de32251e68176e6662e3e3493e20448f133cd
+    - filename: "ak31 ctrl_adc1_pafAvTemp-data-2026-04-01 05_19_00.csv"
+      sha256: 8228b16803a10a808c0681cf6af4cb97b01e5766224545ff60c2d5226e692107
+    - filename: "ak32 ctrl_adc1_pafAvTemp-data-2026-04-01 05_19_29.csv"
+      sha256: c73bb3185334f5c0416a8cab5f48af5e727d5972969441b54b52766683e7229e
+    - filename: "ak33 ctrl_adc1_pafAvTemp-data-2026-04-01 05_19_44.csv"
+      sha256: 4bba284f7018fd52c4e6fb8e855bf12bc03ff04e87827b96fb7aa9eb83d42755
+    - filename: "ak34 ctrl_adc1_pafAvTemp-data-2026-04-01 05_20_02.csv"
+      sha256: edef7b6bada15a9819a4b033565accb1f5f46afa8e0e34ece396f000756db6d0
+    - filename: "ak35 ctrl_adc1_pafAvTemp-data-2026-04-01 05_20_27.csv"
+      sha256: 05bccc191c0d57cf72be136c279522fbbc07957e5a08a304eff8a56394c364ae
+    - filename: "ak36 ctrl_adc1_pafAvTemp-data-2026-04-01 05_20_41.csv"
+      sha256: e3161907426b8a6ac0c2d762afafb1e5db8d8278850f602199e07e2e24280cd6
