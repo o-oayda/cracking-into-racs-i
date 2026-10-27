@@ -1,3 +1,7 @@
+nvss_catalogue:
+  filename: Full_NVSS_combined_named.dat
+  sha256: 52eb576c1e3e71837f2fca26121789ccc0b316152cca3f25ea2f37ea8ef5a38e
+
 racs_mid1_catalogue:
   note: "this version contains the corrected declination column"
   dropbox_link: https://www.dropbox.com/scl/fi/j3srlty79n182n0rzinky/RACS-mid1_noscale_srl.fits?rlkey=ujfxsv68j3nf8gbspl3zk7931&st=d78345tw&e=1&dl=0

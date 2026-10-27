@@ -1,13 +1,20 @@
 import shlex
+from pathlib import Path
+import runpy
+import yaml
 
 configfile: "workflow/config/artifacts.yaml"
 
 # temp paths
-PAF_DIR_PATH = '../dipole-utils/data/paf_temps'
-LOW3_PATH = '../../catalogue_data/racs/low3/RACS-low3_sources.fits'
-MID1_PATH = '../../catalogue_data/racs/mid1/RACS-mid1_noscale_srl.fits'
-NVSS_PATH = '../../catalogue_data/nvss/Full_NVSS_combined_named.dat'
-NOISEMAP_PATH = '../../catalogue_data/racs/noisemaps'
+PAF_DIR_PATH = "data/paf_temps"
+LOW3_PATH = "data/RACS-low3_sources.fits"
+MID1_PATH = "data/RACS-mid1_noscale_srl.fits"
+NVSS_PATH = "data/Full_NVSS_combined_named.dat"
+NOISEMAP_PATH = "data/noisemaps"
+
+DATA_MANIFEST = yaml.safe_load(Path("required-data.yaml").read_text())
+DATA_INPUTS = [str(path) for path, _ in runpy.run_path("scripts/verify-data.py")["data_files"](DATA_MANIFEST, Path("data"))]
+DATA_REPORT = "derived/data/verified.json"
 
 LOW3_ID = 'racs_low3_fiducial'
 MID1_ID = 'racs_mid1_fiducial'
@@ -129,6 +136,7 @@ def analysis_artifact_path(wildcards):
 
 rule all:
   input:
+    data_verification=DATA_REPORT,
     verification_reports=list(ANALYSIS_VERIFICATION_REPORTS.values()),
     plots = [
       'output/figx-paf-temp.pdf',
@@ -147,6 +155,29 @@ rule all:
       'output/log-bayes.json',
       'output/marginals.json',
     ]
+
+
+rule prepare_mid1:
+  input:
+    catalogue=MID1_PATH,
+    manifest="required-data.yaml",
+    script="scripts/prepare-mid1.py"
+  output:
+    report="derived/data/mid1-conversion.json"
+  shell:
+    "python {input.script:q} --catalogue {input.catalogue:q} --manifest {input.manifest:q} --report {output.report:q}"
+
+
+rule verify_data:
+  input:
+    conversion="derived/data/mid1-conversion.json",
+    files=DATA_INPUTS,
+    manifest="required-data.yaml",
+    script="scripts/verify-data.py"
+  output:
+    report=DATA_REPORT
+  shell:
+    "python {input.script:q} --manifest {input.manifest:q} --report {output.report:q}"
 
 
 rule verify_racs_analysis_artifact:
@@ -192,6 +223,7 @@ rule verify_analysis_artifact:
 
 rule paf_temp_plot:
   input:
+    data_verification=DATA_REPORT,
     paf_dir_path=PAF_DIR_PATH,
     catalogue_path=LOW3_PATH
   output:
@@ -211,6 +243,7 @@ rule paf_temp_plot:
 
 rule racs_nvss_ratio_plot:
   input:
+    data_verification=DATA_REPORT,
     paf_dir_path=PAF_DIR_PATH,
     noisemap_path=NOISEMAP_PATH,
     low3_path=LOW3_PATH,
@@ -389,6 +422,7 @@ rule skymap:
 
 rule posterior_predictive_residuals:
   input:
+    data_verification=DATA_REPORT,
     plot_script="scripts/figx-posterior-predictive-residuals.py",
     plot_style="src/ciri/plot_style.py",
     paf_dir_path=PAF_DIR_PATH,
@@ -444,6 +478,7 @@ rule clustering:
 
 rule tempmap:
   input:
+    data_verification=DATA_REPORT,
     plot_script="scripts/figx-tempmap.py",
     plot_style="src/ciri/plot_style.py",
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
@@ -464,6 +499,7 @@ rule tempmap:
 
 rule median_predictive:
   input:
+    data_verification=DATA_REPORT,
     plot_script="scripts/figx-median-residuals.py",
     plot_style="src/ciri/plot_style.py",
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
