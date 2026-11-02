@@ -65,7 +65,7 @@ def parse_args():
 
 
 def load_paf_temps(path: str, observation_day: date):
-    sample_path = Path(path).expanduser() / EXAMPLE_SAMPLE
+    sample_path = Path(path).expanduser() / f'RACS-{EXAMPLE_SAMPLE}_PAF_temperature_series'
     files_by_antenna = {
         antenna: sorted(
             sample_path.glob(f'{antenna} ctrl_adc1_pafAvTemp-data-*.csv')
@@ -101,7 +101,7 @@ def load_paf_temps(path: str, observation_day: date):
 
 
 def load_ambient_temperature(path: str, observation_day: date):
-    sample_path = Path(path).expanduser() / EXAMPLE_SAMPLE
+    sample_path = Path(path).expanduser() / f'RACS-{EXAMPLE_SAMPLE}_PAF_temperature_series'
     ambient_paths = sorted(
         sample_path.glob('Temperature & Humidity-data-*.csv')
     )
@@ -137,7 +137,7 @@ def load_ambient_temperature(path: str, observation_day: date):
 def compute_catsim_mean_paf_temperature(
     path: str, observation_day: date
 ) -> pd.DataFrame:
-    sample_path = Path(path).expanduser() / EXAMPLE_SAMPLE
+    sample_path = Path(path).expanduser() / f'RACS-{EXAMPLE_SAMPLE}_PAF_temperature_series'
     day_start = datetime.combine(
         observation_day, time.min, tzinfo=AWST_TIMEZONE
     )

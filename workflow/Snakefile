@@ -224,6 +224,7 @@ rule verify_analysis_artifact:
 rule paf_temp_plot:
   input:
     data_verification=DATA_REPORT,
+    paf_products=[f"{PAF_DIR_PATH}/RACS-{product}_PAF_temperature_series" for product in ("low3", "mid1")],
     paf_dir_path=PAF_DIR_PATH,
     catalogue_path=LOW3_PATH
   output:
@@ -244,6 +245,7 @@ rule paf_temp_plot:
 rule racs_nvss_ratio_plot:
   input:
     data_verification=DATA_REPORT,
+    paf_products=[f"{PAF_DIR_PATH}/RACS-{product}_PAF_temperature_series" for product in ("low3", "mid1")],
     paf_dir_path=PAF_DIR_PATH,
     noisemap_path=NOISEMAP_PATH,
     low3_path=LOW3_PATH,
@@ -425,6 +427,7 @@ rule posterior_predictive_residuals:
     data_verification=DATA_REPORT,
     plot_script="scripts/figx-posterior-predictive-residuals.py",
     plot_style="src/ciri/plot_style.py",
+    paf_products=[f"{PAF_DIR_PATH}/RACS-{product}_PAF_temperature_series" for product in ("low3", "mid1")],
     paf_dir_path=PAF_DIR_PATH,
     noisemap_path=NOISEMAP_PATH,
     low3_catalogue_path=LOW3_PATH,
@@ -483,6 +486,7 @@ rule tempmap:
     plot_style="src/ciri/plot_style.py",
     low3_artifact=ANALYSIS_ARTIFACTS[LOW3_ID]["path"],
     mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
+    paf_products=[f"{PAF_DIR_PATH}/RACS-{product}_PAF_temperature_series" for product in ("low3", "mid1")],
     paf_dir_path=PAF_DIR_PATH,
   output:
     "output/figx-tempmap.pdf"
@@ -506,6 +510,7 @@ rule median_predictive:
     mid1_artifact=ANALYSIS_ARTIFACTS[MID1_ID]["path"],
     low3_catalogue_path=LOW3_PATH,
     mid1_catalogue_path=MID1_PATH,
+    paf_products=[f"{PAF_DIR_PATH}/RACS-{product}_PAF_temperature_series" for product in ("low3", "mid1")],
     paf_dir_path=PAF_DIR_PATH,
     noisemap_path=NOISEMAP_PATH
   output:

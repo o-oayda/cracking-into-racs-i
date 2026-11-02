@@ -1,3 +1,4 @@
+from ciri.paf_paths import paf_product_dir
 import argparse
 from pathlib import Path
 import catsim
@@ -24,7 +25,7 @@ def parse_args() -> argparse.Namespace:
 def load_racs_object(artifact: Path, paf_dir_path: Path) -> catsim.Racs:
     cfg = load_model_config(artifact)
     cfg.catalogue_path = '/home/oliver/catalogue_data/racs/mid1/RACS-mid1_noscale_srl.fits'
-    cfg.paf_temperature_data_dir = str(paf_dir_path.expanduser())
+    cfg.paf_temperature_data_dir = str(paf_product_dir(paf_dir_path, cfg.product.key))
     racs = catsim.Racs(cfg)
     racs.initialise_data()
     return racs

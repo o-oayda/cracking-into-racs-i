@@ -1,3 +1,4 @@
+from ciri.paf_paths import paf_product_dir
 from astropy.io.registry import IORegistryError
 from catsim.racs_products import RACS_LOW3, RACS_MID1
 from catsim.racs_temperature import evaluate_temperature_response
@@ -141,7 +142,7 @@ def get_lookups_from_model(racs_sample, paf_dir_path, noisemap_dir):
         RacsConfig(
             FLUX_MIN,
             product=survey_to_product[racs_sample],
-            paf_temperature_data_dir=paf_dir_path,
+            paf_temperature_data_dir=str(paf_product_dir(paf_dir_path, survey_to_product[racs_sample].key)),
             noisemap_data_dir=noisemap_dir
         )
     )

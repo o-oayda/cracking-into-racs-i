@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ciri.paf_paths import paf_product_dir
+
 import argparse
 from pathlib import Path
 from typing import Literal
@@ -146,7 +148,7 @@ def prepare_model_config(
             f"Expected a {expected_product} artifact; got {config.product.key}"
         )
     config.catalogue_path = str(catalogue_path.expanduser())
-    config.paf_temperature_data_dir = str(paf_dir_path.expanduser())
+    config.paf_temperature_data_dir = str(paf_product_dir(paf_dir_path, config.product.key))
     # The inference configuration is downscaled. Posterior predictive maps and
     # the archived native reference must instead remain at NSIDE 64.
     config.downscale_nside = None

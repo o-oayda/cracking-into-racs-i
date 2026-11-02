@@ -1,3 +1,4 @@
+from ciri.paf_paths import paf_product_dir
 import argparse
 from pathlib import Path
 
@@ -78,7 +79,7 @@ def simulate_smoothed_map(
             f'Expected a {expected_product} artifact; got {config.product.key}'
         )
     config.catalogue_path = str(catalogue_path.expanduser())
-    config.paf_temperature_data_dir = str(paf_dir_path.expanduser())
+    config.paf_temperature_data_dir = str(paf_product_dir(paf_dir_path, config.product.key))
     config.noisemap_data_dir = noisemap_dir
     config.downscale_nside = None
     _, native_mask = load_reference_observation(
