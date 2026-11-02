@@ -1,7 +1,7 @@
 # cracking-into-racs-i
 
 Code to reproduce [Oayda et al. (2026)](https://arxiv.org/abs/2610.35207):
-*Cracking into RACS - I. Measuring the cosmic dipole in the RACS-low3 and
+*Cracking into RACS – I. Measuring the cosmic dipole in the RACS-low3 and
 RACS-mid1 radio surveys with simulation-based inference*.
 
 [![arXiv](https://img.shields.io/badge/arXiv-2610.35207-b31b1b.svg)](https://arxiv.org/abs/2610.35207)
@@ -13,9 +13,13 @@ RACS-mid1 radio surveys with simulation-based inference*.
 - Unix-like system; Windows is untested
 
 ### Virtual environment
-Run `uv sync --locked` to create a virtual environment and install the base
-dependencies. Alternatively, if you have a NVIDIA GPU, run with the flag `uv
-sync --locked --extra cuda` for the optional cuda backend, which is useful for
+- Clone the repo and `cd` into it. All further work is done in this directory.
+- Run `uv sync --locked` to create a virtual environment and install the base
+dependencies.
+- Alternatively, if you have a NVIDIA GPU, run with the flag `uv
+sync --locked --extra cuda`.
+
+The optional cuda backend is useful for
 efficiently generating simulations for the posterior predictive residuals plot
 via JAX. This has been tested to work fine on a RTX 5070 Ti, H100 and L40 GPU.
 Otherwise, the numpy backend will be used; this will get the job done as long
@@ -38,7 +42,7 @@ As in the table above, first download Products 1, 3 and 4 from the CSIRO Data
 Access Portal (DAP) [listing for the paper](https://data.csiro.au/collection/csiro%3A78906v1),
 and Products 2 and 5 from the [release](https://github.com/o-oayda/cracking-into-racs-i/releases/tag/v1.0.0).
 
-- Place Products 1 and 2, and 4 in `data/`.
+- Place Products 1 and 2 in `data/`.
 - Place Product 4 in `data/noisemaps/`.
 - Extract the contents of Product 5 into `artifacts/cache/` (will be a collection
 of zips, do not uncompress these individual folders as shown below).
@@ -83,6 +87,8 @@ artifacts
 Run `uv run snakemake verify_data --cores 1` to verify the files listed in
 `required-data.yaml` in the directories above. This will check the files
 against the hashes in `required-data.yaml` to ensure the integrity of the data.
+It may take some time to run, so please be patient and try not to interrupt the
+command.
 
 The mid1 catalogue is provided with units of Jy for the source total flux and
 total flux error, but the libraries expect catalogues with units of mJy.
@@ -131,7 +137,19 @@ uv run snakemake all \
 ```
 Change `N` with however many threads are available on your system. This will
 speed up the production of the simulation for the residuals plot by
-distributing the jobs over many workers via `joblib`.
+distributing the jobs over many workers via `joblib`, but be warned that the
+`posterior_predictive_residuals` rule still takes quite a bit of time.
+
+> [!WARNING]
+> When using the numpy backend, some values in plots (like the colour bar on
+> the posterior residuals) will be slightly different as cuda was used to make
+> the paper plots, i.e. the seeds give different random states depending on the
+> chosen backend.
+
+> [!WARNING]
+> Currently the `paf_temp_plot` (Figure 1 in the paper) fails because of a missing
+> ambient temperature file in the low3 PAF temps dir. This will be addressed very
+> soon.
 
 ### Regenerating artefacts
 This will take substantially longer. On an H100 GPU, from testing expect about
